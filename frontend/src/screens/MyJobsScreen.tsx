@@ -6,7 +6,6 @@ import {
   Platform,
   RefreshControl,
   ScrollView,
-  StyleSheet,
   Text,
   TextInput,
   View,
@@ -18,9 +17,10 @@ import { FormField } from '../components/FormField';
 import { JobCard } from '../components/JobCard';
 import { PrimaryButton } from '../components/PrimaryButton';
 import { useAuth } from '../context/AuthContext';
-import { colors } from '../theme/colors';
 import { JobSummary, VolunteerApplication } from '../types';
 import { RootStackParamList } from '../navigation/types';
+import { colors } from '../theme/colors';
+import { myJobsStyles as styles } from './styles';
 
 const defaultJobForm = {
   title: '',
@@ -219,67 +219,3 @@ export const MyJobsScreen: React.FC = () => {
     </KeyboardAvoidingView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-    paddingHorizontal: 16,
-  },
-  heading: {
-    fontSize: 22,
-    fontWeight: '700',
-    marginVertical: 16,
-    color: colors.text,
-  },
-  listContent: {
-    paddingBottom: 32,
-  },
-  card: {
-    backgroundColor: colors.card,
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-  },
-  cardTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    marginBottom: 6,
-  },
-  cardMeta: {
-    color: colors.muted,
-    marginBottom: 4,
-  },
-  empty: {
-    textAlign: 'center',
-    color: colors.muted,
-    marginTop: 24,
-  },
-  requesterContent: {
-    paddingBottom: 64,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: colors.text,
-    marginBottom: 6,
-  },
-  textArea: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 12,
-    padding: 12,
-    backgroundColor: colors.card,
-    textAlignVertical: 'top',
-    minHeight: 120,
-  },
-  inlineFields: {
-    flexDirection: 'row',
-    columnGap: 12,
-  },
-  inlineField: {
-    flex: 1,
-  },
-});

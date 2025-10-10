@@ -5,7 +5,6 @@ import {
   Alert,
   Linking,
   ScrollView,
-  StyleSheet,
   Text,
   TextInput,
   View,
@@ -15,8 +14,9 @@ import { FormField } from '../components/FormField';
 import { PrimaryButton } from '../components/PrimaryButton';
 import { useAuth } from '../context/AuthContext';
 import { RootStackParamList } from '../navigation/types';
-import { colors } from '../theme/colors';
 import { JobDetail } from '../types';
+import { colors } from '../theme/colors';
+import { jobDetailStyles as styles } from './styles';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'JobDetail'>;
 
@@ -166,64 +166,3 @@ export const JobDetailScreen: React.FC<Props> = ({ route }) => {
     </ScrollView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  content: {
-    padding: 20,
-    paddingBottom: 40,
-  },
-  loader: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: colors.text,
-    marginBottom: 4,
-  },
-  meta: {
-    color: colors.muted,
-    marginBottom: 8,
-  },
-  section: {
-    marginTop: 24,
-    backgroundColor: colors.card,
-    borderRadius: 16,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: colors.text,
-    marginBottom: 8,
-  },
-  bodyText: {
-    fontSize: 15,
-    lineHeight: 22,
-    color: colors.text,
-    marginBottom: 8,
-  },
-  bullet: {
-    fontSize: 14,
-    color: colors.text,
-    marginBottom: 4,
-  },
-  input: {
-    borderColor: colors.border,
-  },
-  textArea: {
-    borderRadius: 12,
-    padding: 12,
-    minHeight: 100,
-    textAlignVertical: 'top',
-    backgroundColor: colors.card,
-  },
-});

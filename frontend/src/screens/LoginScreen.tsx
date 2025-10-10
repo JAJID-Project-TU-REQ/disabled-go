@@ -1,11 +1,11 @@
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import React, { useState } from 'react';
-import { Alert, KeyboardAvoidingView, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, KeyboardAvoidingView, Platform, Text, TouchableOpacity, View } from 'react-native';
 import { FormField } from '../components/FormField';
 import { PrimaryButton } from '../components/PrimaryButton';
 import { useAuth } from '../context/AuthContext';
-import { colors } from '../theme/colors';
 import { RootStackParamList } from '../navigation/types';
+import { loginStyles as styles } from './styles';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
 
@@ -53,42 +53,3 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
     </KeyboardAvoidingView>
   );
 };
-
-const styles = StyleSheet.create({
-  wrapper: {
-    flex: 1,
-    backgroundColor: colors.background,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 24,
-  },
-  card: {
-    width: '100%',
-    backgroundColor: colors.card,
-    padding: 24,
-    borderRadius: 18,
-    shadowColor: '#000',
-    shadowOpacity: 0.06,
-    shadowOffset: { width: 0, height: 4 },
-    shadowRadius: 12,
-    elevation: 4,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: colors.primary,
-    marginBottom: 16,
-    textAlign: 'center',
-  },
-  subtitle: {
-    textAlign: 'center',
-    color: colors.muted,
-    marginBottom: 24,
-  },
-  registerLink: {
-    marginTop: 16,
-    textAlign: 'center',
-    color: colors.primary,
-    fontWeight: '600',
-  },
-});

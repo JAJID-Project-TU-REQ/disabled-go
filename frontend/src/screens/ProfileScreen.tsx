@@ -1,8 +1,8 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-import { useAuth } from '../context/AuthContext';
+import { Text, View } from 'react-native';
 import { PrimaryButton } from '../components/PrimaryButton';
-import { colors } from '../theme/colors';
+import { useAuth } from '../context/AuthContext';
+import { profileStyles as styles } from './styles';
 
 export const ProfileScreen: React.FC = () => {
   const { user, refreshProfile, logout, isLoading } = useAuth();
@@ -49,53 +49,3 @@ export const ProfileScreen: React.FC = () => {
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-    padding: 20,
-  },
-  headerCard: {
-    backgroundColor: colors.card,
-    borderRadius: 16,
-    padding: 20,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    marginBottom: 16,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: colors.text,
-    marginBottom: 6,
-  },
-  role: {
-    fontWeight: '600',
-    color: colors.primary,
-    marginBottom: 12,
-  },
-  meta: {
-    color: colors.muted,
-    marginBottom: 4,
-  },
-  section: {
-    backgroundColor: colors.card,
-    borderRadius: 16,
-    padding: 20,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    marginBottom: 16,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    marginBottom: 8,
-    color: colors.text,
-  },
-  body: {
-    fontSize: 15,
-    color: colors.text,
-    lineHeight: 22,
-  },
-});

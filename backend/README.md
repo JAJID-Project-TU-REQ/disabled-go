@@ -9,7 +9,7 @@ cd back-disabled-go
 ```
 3. run docker compose
 ```bash
-docker compose up --build
+docker compose up -d
 ```
 4. The server will be running on port 3000
 

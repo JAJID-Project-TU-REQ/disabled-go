@@ -5,7 +5,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  StyleSheet,
   Text,
   TouchableOpacity,
   View,
@@ -14,8 +13,8 @@ import { FormField } from '../components/FormField';
 import { PrimaryButton } from '../components/PrimaryButton';
 import { RegisterPayload, useAuth } from '../context/AuthContext';
 import { RootStackParamList } from '../navigation/types';
-import { colors } from '../theme/colors';
 import { UserRole } from '../types';
+import { registerStyles as styles } from './styles';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Register'>;
 
@@ -156,61 +155,3 @@ export const RegisterScreen: React.FC<Props> = ({ navigation }) => {
     </KeyboardAvoidingView>
   );
 };
-
-const styles = StyleSheet.create({
-  wrapper: {
-    flex: 1,
-    backgroundColor: colors.background,
-    paddingHorizontal: 20,
-  },
-  content: {
-    paddingTop: 32,
-    paddingBottom: 64,
-  },
-  heading: {
-    fontSize: 26,
-    fontWeight: '700',
-    color: colors.primary,
-    marginBottom: 4,
-    textAlign: 'center',
-  },
-  subheading: {
-    textAlign: 'center',
-    color: colors.muted,
-    marginBottom: 24,
-  },
-  roleSwitcher: {
-    flexDirection: 'row',
-    marginBottom: 24,
-    backgroundColor: '#e5f3f2',
-    borderRadius: 999,
-    padding: 6,
-  },
-  roleButton: {
-    flex: 1,
-    paddingVertical: 12,
-    alignItems: 'center',
-    borderRadius: 999,
-  },
-  roleButtonActive: {
-    backgroundColor: colors.primary,
-  },
-  roleButtonText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: colors.primary,
-  },
-  roleButtonTextActive: {
-    color: '#fff',
-  },
-  multiline: {
-    height: 120,
-    textAlignVertical: 'top',
-  },
-  signInLink: {
-    marginTop: 20,
-    textAlign: 'center',
-    color: colors.primary,
-    fontWeight: '600',
-  },
-});
