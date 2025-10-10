@@ -7,7 +7,7 @@ import { api } from '../api/client';
 import { JobSummary } from '../types';
 import { RootStackParamList } from '../navigation/types';
 import { colors } from '../theme/colors';
-import { jobListStyles as styles } from './styles';
+import { styles } from './styles';
 
 export const JobListScreen: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
@@ -45,25 +45,25 @@ export const JobListScreen: React.FC = () => {
 
   if (loading) {
     return (
-      <View style={styles.centerContent}>
+      <View style={styles.jobListCenterContent}>
         <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.header}>Available opportunities</Text>
-      {error ? <Text style={styles.errorText}>{error}</Text> : null}
+    <View style={styles.jobListContainer}>
+      <Text style={styles.jobListHeader}>Available opportunities</Text>
+      {error ? <Text style={styles.jobListErrorText}>{error}</Text> : null}
       <FlatList
         data={jobs}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContent}
+        contentContainerStyle={styles.jobListContent}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
         renderItem={({ item }) => (
           <JobCard job={item} onPress={() => navigation.navigate('JobDetail', { jobId: item.id })} />
         )}
-        ListEmptyComponent={<Text style={styles.emptyText}>No opportunities found yet.</Text>}
+        ListEmptyComponent={<Text style={styles.jobListEmptyText}>No opportunities found yet.</Text>}
       />
     </View>
   );

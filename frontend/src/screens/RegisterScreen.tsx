@@ -14,7 +14,7 @@ import { PrimaryButton } from '../components/PrimaryButton';
 import { RegisterPayload, useAuth } from '../context/AuthContext';
 import { RootStackParamList } from '../navigation/types';
 import { UserRole } from '../types';
-import { registerStyles as styles } from './styles';
+import { styles } from './styles';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Register'>;
 
@@ -68,10 +68,10 @@ export const RegisterScreen: React.FC<Props> = ({ navigation }) => {
     return (
       <TouchableOpacity
         key={role}
-        style={[styles.roleButton, isActive && styles.roleButtonActive]}
+        style={[styles.registerRoleButton, isActive && styles.registerRoleButtonActive]}
         onPress={() => setField('role', role)}
       >
-        <Text style={[styles.roleButtonText, isActive && styles.roleButtonTextActive]}>{label}</Text>
+        <Text style={[styles.registerRoleButtonText, isActive && styles.registerRoleButtonTextActive]}>{label}</Text>
       </TouchableOpacity>
     );
   };
@@ -79,16 +79,16 @@ export const RegisterScreen: React.FC<Props> = ({ navigation }) => {
   return (
     <KeyboardAvoidingView
       behavior={Platform.select({ ios: 'padding', android: undefined })}
-      style={styles.wrapper}
+      style={styles.registerWrapper}
     >
       <ScrollView
-        contentContainerStyle={styles.content}
+        contentContainerStyle={styles.registerContent}
         style={{ width: '100%' }}
         keyboardShouldPersistTaps="handled"
       >
-        <Text style={styles.heading}>Join Disabled Go</Text>
-        <Text style={styles.subheading}>Choose how you want to participate</Text>
-        <View style={styles.roleSwitcher}>
+        <Text style={styles.registerHeading}>Join Disabled Go</Text>
+        <Text style={styles.registerSubheading}>Choose how you want to participate</Text>
+        <View style={styles.registerRoleSwitcher}>
           {renderRoleButton('volunteer', 'Volunteer')}
           {renderRoleButton('requester', 'Requester')}
         </View>
@@ -144,12 +144,12 @@ export const RegisterScreen: React.FC<Props> = ({ navigation }) => {
           onChangeText={(text) => setField('biography', text)}
           multiline
           numberOfLines={4}
-          style={styles.multiline}
+          style={styles.registerMultiline}
         />
 
         <PrimaryButton title="Create account" onPress={handleRegister} loading={isLoading} />
         <TouchableOpacity onPress={() => navigation.navigate('Login')} disabled={isLoading}>
-          <Text style={styles.signInLink}>Already have an account? Sign in</Text>
+          <Text style={styles.registerSignInLink}>Already have an account? Sign in</Text>
         </TouchableOpacity>
       </ScrollView>
     </KeyboardAvoidingView>

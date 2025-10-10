@@ -5,7 +5,7 @@ import { FormField } from '../components/FormField';
 import { PrimaryButton } from '../components/PrimaryButton';
 import { useAuth } from '../context/AuthContext';
 import { RootStackParamList } from '../navigation/types';
-import { loginStyles as styles } from './styles';
+import { styles } from './styles';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
 
@@ -25,11 +25,11 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
   return (
     <KeyboardAvoidingView
       behavior={Platform.select({ ios: 'padding', android: undefined })}
-      style={styles.wrapper}
+      style={styles.loginWrapper}
     >
-      <View style={styles.card}>
-        <Text style={styles.title}>Disabled Go</Text>
-        <Text style={styles.subtitle}>Sign in to continue</Text>
+      <View style={styles.loginCard}>
+        <Text style={styles.loginTitle}>Disabled Go</Text>
+        <Text style={styles.loginSubtitle}>Sign in to continue</Text>
         <FormField
           label="Email"
           autoCapitalize="none"
@@ -47,7 +47,7 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
         />
         <PrimaryButton title="Log in" onPress={handleLogin} loading={isLoading} />
         <TouchableOpacity onPress={() => navigation.navigate('Register')} disabled={isLoading}>
-          <Text style={styles.registerLink}>Need an account? Register</Text>
+          <Text style={styles.loginRegisterLink}>Need an account? Register</Text>
         </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>

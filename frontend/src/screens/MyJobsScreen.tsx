@@ -20,7 +20,7 @@ import { useAuth } from '../context/AuthContext';
 import { JobSummary, VolunteerApplication } from '../types';
 import { RootStackParamList } from '../navigation/types';
 import { colors } from '../theme/colors';
-import { myJobsStyles as styles } from './styles';
+import { styles } from './styles';
 
 const defaultJobForm = {
   title: '',
@@ -117,19 +117,19 @@ export const MyJobsScreen: React.FC = () => {
 
   if (user.role === 'volunteer') {
     return (
-      <View style={styles.container}>
-        <Text style={styles.heading}>My applications</Text>
+      <View style={styles.myJobsContainer}>
+        <Text style={styles.myJobsHeading}>My applications</Text>
         <FlatList
           data={applications}
           keyExtractor={(item) => item.application.id}
-          contentContainerStyle={styles.listContent}
+          contentContainerStyle={styles.myJobsListContent}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
-          ListEmptyComponent={!loading ? <Text style={styles.empty}>No applications yet.</Text> : null}
+          ListEmptyComponent={!loading ? <Text style={styles.myJobsEmpty}>No applications yet.</Text> : null}
           renderItem={({ item }) => (
-            <View style={styles.card}>
-              <Text style={styles.cardTitle}>{item.job.title}</Text>
-              <Text style={styles.cardMeta}>Status: {item.application.status}</Text>
-              <Text style={styles.cardMeta}>Submitted on {new Date(item.application.createdAt).toLocaleDateString()}</Text>
+            <View style={styles.myJobsCard}>
+              <Text style={styles.myJobsCardTitle}>{item.job.title}</Text>
+              <Text style={styles.myJobsCardMeta}>Status: {item.application.status}</Text>
+              <Text style={styles.myJobsCardMeta}>Submitted on {new Date(item.application.createdAt).toLocaleDateString()}</Text>
               <PrimaryButton
                 title="View details"
                 onPress={() => navigation.navigate('JobDetail', { jobId: item.job.id })}
@@ -144,16 +144,16 @@ export const MyJobsScreen: React.FC = () => {
 
   return (
     <KeyboardAvoidingView
-      style={styles.container}
+      style={styles.myJobsContainer}
       behavior={Platform.select({ ios: 'padding', android: undefined })}
     >
       <ScrollView
         style={{ flex: 1 }}
-        contentContainerStyle={styles.requesterContent}
+        contentContainerStyle={styles.myJobsRequesterContent}
         keyboardShouldPersistTaps="handled"
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
       >
-        <Text style={styles.heading}>Create a new request</Text>
+        <Text style={styles.myJobsHeading}>Create a new request</Text>
         <FormField label="Title" value={jobForm.title} onChangeText={(text) => setField('title', text)} />
         <FormField
           label="Scheduled on"
@@ -179,9 +179,9 @@ export const MyJobsScreen: React.FC = () => {
           placeholder="Wheelchair handling, Thai language"
           helperText="Separate with commas"
         />
-        <Text style={styles.label}>Description</Text>
+        <Text style={styles.myJobsLabel}>Description</Text>
         <TextInput
-          style={styles.textArea}
+          style={styles.myJobsTextArea}
           multiline
           numberOfLines={4}
           value={jobForm.description}
@@ -189,27 +189,27 @@ export const MyJobsScreen: React.FC = () => {
           placeholder="Share details for volunteers"
           placeholderTextColor={colors.muted}
         />
-        <View style={styles.inlineFields}>
+        <View style={styles.myJobsInlineFields}>
           <FormField
             label="Latitude"
             value={jobForm.latitude}
             onChangeText={(text) => setField('latitude', text)}
             keyboardType="decimal-pad"
-            containerStyle={styles.inlineField}
+            containerStyle={styles.myJobsInlineField}
           />
           <FormField
             label="Longitude"
             value={jobForm.longitude}
             onChangeText={(text) => setField('longitude', text)}
             keyboardType="decimal-pad"
-            containerStyle={styles.inlineField}
+            containerStyle={styles.myJobsInlineField}
           />
         </View>
         <PrimaryButton title="Publish request" onPress={handleCreateJob} loading={submitting} />
 
-        <Text style={[styles.heading, { marginTop: 32 }]}>Your requests</Text>
+        <Text style={[styles.myJobsHeading, { marginTop: 32 }]}>Your requests</Text>
         {jobs.length === 0 ? (
-          <Text style={styles.empty}>No requests yet. Create one above to get started.</Text>
+          <Text style={styles.myJobsEmpty}>No requests yet. Create one above to get started.</Text>
         ) : (
           jobs.map((job) => (
             <JobCard key={job.id} job={job} onPress={() => navigation.navigate('JobDetail', { jobId: job.id })} />
