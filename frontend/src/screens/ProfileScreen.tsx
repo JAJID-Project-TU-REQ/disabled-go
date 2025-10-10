@@ -1,10 +1,12 @@
 import React from 'react';
 import { Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PrimaryButton } from '../components/PrimaryButton';
 import { useAuth } from '../context/AuthContext';
-import { styles } from './styles';
+import { getDynamicTopPadding, styles } from './styles';
 
 export const ProfileScreen: React.FC = () => {
+  const insets = useSafeAreaInsets();
   const { user, refreshProfile, logout, isLoading } = useAuth();
 
   if (!user) {
@@ -12,7 +14,7 @@ export const ProfileScreen: React.FC = () => {
   }
 
   return (
-    <View style={[styles.screen, styles.pad20]}>
+    <View style={[styles.screen, styles.pad20, getDynamicTopPadding(insets.top)]}>
       <View style={[styles.section, styles.pad20, styles.mb16]}>
         <Text style={styles.title}>{user.fullName}</Text>
         <Text style={[styles.roleLabel, styles.mb12]}>

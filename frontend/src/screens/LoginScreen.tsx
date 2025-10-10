@@ -1,15 +1,17 @@
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import React, { useState } from 'react';
 import { Alert, KeyboardAvoidingView, Platform, Text, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FormField } from '../components/FormField';
 import { PrimaryButton } from '../components/PrimaryButton';
 import { useAuth } from '../context/AuthContext';
 import { RootStackParamList } from '../navigation/types';
-import { styles } from './styles';
+import { getDynamicTopPadding, styles } from './styles';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
 
 export const LoginScreen: React.FC<Props> = ({ navigation }) => {
+  const insets = useSafeAreaInsets();
   const { login, isLoading } = useAuth();
   const [email, setEmail] = useState('anya.volunteer@example.com');
   const [password, setPassword] = useState('password');
@@ -25,7 +27,7 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
   return (
     <KeyboardAvoidingView
       behavior={Platform.select({ ios: 'padding', android: undefined })}
-      style={[styles.screen, styles.centered, styles.pad24]}
+      style={[styles.screen, styles.centered, styles.pad24, getDynamicTopPadding(insets.top)]}
     >
       <View style={styles.authCard}>
         <Text style={styles.authTitle}>Disabled Go</Text>

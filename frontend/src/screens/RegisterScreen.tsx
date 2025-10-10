@@ -9,12 +9,13 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FormField } from '../components/FormField';
 import { PrimaryButton } from '../components/PrimaryButton';
 import { RegisterPayload, useAuth } from '../context/AuthContext';
 import { RootStackParamList } from '../navigation/types';
 import { UserRole } from '../types';
-import { styles } from './styles';
+import { getDynamicTopPadding, styles } from './styles';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Register'>;
 
@@ -31,6 +32,7 @@ const defaultPayload: RegisterPayload = {
 };
 
 export const RegisterScreen: React.FC<Props> = ({ navigation }) => {
+  const insets = useSafeAreaInsets();
   const { register, isLoading } = useAuth();
   const [payload, setPayload] = useState<RegisterPayload>(defaultPayload);
   const [skillsInput, setSkillsInput] = useState('');
@@ -79,7 +81,7 @@ export const RegisterScreen: React.FC<Props> = ({ navigation }) => {
   return (
     <KeyboardAvoidingView
       behavior={Platform.select({ ios: 'padding', android: undefined })}
-      style={[styles.screen, styles.padHorizontal20]}
+      style={[styles.screen, styles.padHorizontal20, getDynamicTopPadding(insets.top)]}
     >
       <ScrollView
         contentContainerStyle={[styles.pt32, styles.pb64]}

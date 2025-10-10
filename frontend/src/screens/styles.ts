@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 import { colors } from '../theme/colors';
 
 export const styles = StyleSheet.create({
@@ -230,4 +230,8 @@ export const styles = StyleSheet.create({
   fullWidth: {
     width: '100%',
   },
+});
+
+export const getDynamicTopPadding = (topInset: number) => ({
+  paddingTop: Platform.OS === 'ios' ? topInset + 16 : topInset,
 });

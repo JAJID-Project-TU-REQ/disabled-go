@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api } from '../api/client';
 import { FormField } from '../components/FormField';
 import { JobCard } from '../components/JobCard';
@@ -20,7 +21,7 @@ import { useAuth } from '../context/AuthContext';
 import { JobSummary, VolunteerApplication } from '../types';
 import { RootStackParamList } from '../navigation/types';
 import { colors } from '../theme/colors';
-import { styles } from './styles';
+import { getDynamicTopPadding, styles } from './styles';
 
 const defaultJobForm = {
   title: '',
@@ -34,6 +35,7 @@ const defaultJobForm = {
 };
 
 export const MyJobsScreen: React.FC = () => {
+  const insets = useSafeAreaInsets();
   const { user } = useAuth();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [applications, setApplications] = useState<VolunteerApplication[]>([]);
@@ -117,7 +119,7 @@ export const MyJobsScreen: React.FC = () => {
 
   if (user.role === 'volunteer') {
     return (
-      <View style={[styles.screen, styles.padHorizontal16]}>
+      <View style={[styles.screen, styles.padHorizontal16, getDynamicTopPadding(insets.top)]}>
         <Text style={styles.heading}>My applications</Text>
         <FlatList
           data={applications}
@@ -144,7 +146,7 @@ export const MyJobsScreen: React.FC = () => {
 
   return (
     <KeyboardAvoidingView
-      style={[styles.screen, styles.padHorizontal16]}
+      style={[styles.screen, styles.padHorizontal16, getDynamicTopPadding(insets.top)]}
       behavior={Platform.select({ ios: 'padding', android: undefined })}
     >
       <ScrollView

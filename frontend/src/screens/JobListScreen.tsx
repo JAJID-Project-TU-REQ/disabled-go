@@ -2,14 +2,16 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useNavigation } from '@react-navigation/native';
 import React, { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, RefreshControl, Text, View, FlatList } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { JobCard } from '../components/JobCard';
 import { api } from '../api/client';
 import { JobSummary } from '../types';
 import { RootStackParamList } from '../navigation/types';
 import { colors } from '../theme/colors';
-import { styles } from './styles';
+import { getDynamicTopPadding, styles } from './styles';
 
 export const JobListScreen: React.FC = () => {
+  const insets = useSafeAreaInsets();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [jobs, setJobs] = useState<JobSummary[]>([]);
   const [loading, setLoading] = useState(true);
@@ -45,14 +47,14 @@ export const JobListScreen: React.FC = () => {
 
   if (loading) {
     return (
-      <View style={styles.centerContent}>
+      <View style={[styles.screen, styles.centerContent, getDynamicTopPadding(insets.top)]}>
         <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }
 
   return (
-    <View style={[styles.screen, styles.padHorizontal16]}>
+    <View style={[styles.screen, styles.padHorizontal16, getDynamicTopPadding(insets.top)]}>
       <Text style={styles.heading}>Available opportunities</Text>
       {error ? <Text style={styles.errorText}>{error}</Text> : null}
       <FlatList

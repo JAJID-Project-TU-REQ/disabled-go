@@ -9,6 +9,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api } from '../api/client';
 import { FormField } from '../components/FormField';
 import { PrimaryButton } from '../components/PrimaryButton';
@@ -16,11 +17,12 @@ import { useAuth } from '../context/AuthContext';
 import { RootStackParamList } from '../navigation/types';
 import { JobDetail } from '../types';
 import { colors } from '../theme/colors';
-import { styles } from './styles';
+import { getDynamicTopPadding, styles } from './styles';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'JobDetail'>;
 
 export const JobDetailScreen: React.FC<Props> = ({ route }) => {
+  const insets = useSafeAreaInsets();
   const { user } = useAuth();
   const [job, setJob] = useState<JobDetail>();
   const [loading, setLoading] = useState(true);
@@ -92,7 +94,7 @@ export const JobDetailScreen: React.FC<Props> = ({ route }) => {
 
   if (loading || !job) {
     return (
-      <View style={styles.centerContent}>
+      <View style={[styles.screen, styles.centerContent, getDynamicTopPadding(insets.top)]}>
         <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
@@ -102,7 +104,10 @@ export const JobDetailScreen: React.FC<Props> = ({ route }) => {
   const isRequester = user?.role === 'requester';
 
   return (
-    <ScrollView style={styles.screen} contentContainerStyle={[styles.pad20, styles.pb40]}>
+    <ScrollView
+      style={styles.screen}
+      contentContainerStyle={[styles.pad20, styles.pb40, getDynamicTopPadding(insets.top)]}
+    >
       <Text style={styles.title}>{job.title}</Text>
       <Text style={styles.meta}>{job.location}</Text>
       <Text style={styles.meta}>Scheduled on {job.scheduledOn}</Text>
