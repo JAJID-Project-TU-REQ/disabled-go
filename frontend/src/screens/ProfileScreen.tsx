@@ -12,33 +12,35 @@ export const ProfileScreen: React.FC = () => {
   }
 
   return (
-    <View style={styles.profileContainer}>
-      <View style={styles.profileHeaderCard}>
-        <Text style={styles.profileTitle}>{user.fullName}</Text>
-        <Text style={styles.profileRole}>{user.role === 'volunteer' ? 'Volunteer' : 'Requester'}</Text>
-        <Text style={styles.profileMeta}>{user.email}</Text>
-        <Text style={styles.profileMeta}>{user.phone}</Text>
-        <Text style={styles.profileMeta}>{user.address}</Text>
+    <View style={[styles.screen, styles.pad20]}>
+      <View style={[styles.section, styles.pad20, styles.mb16]}>
+        <Text style={styles.title}>{user.fullName}</Text>
+        <Text style={[styles.roleLabel, styles.mb12]}>
+          {user.role === 'volunteer' ? 'Volunteer' : 'Requester'}
+        </Text>
+        <Text style={styles.metaCompact}>{user.email}</Text>
+        <Text style={styles.metaCompact}>{user.phone}</Text>
+        <Text style={styles.metaCompact}>{user.address}</Text>
       </View>
 
-      <View style={styles.profileSection}>
-        <Text style={styles.profileSectionTitle}>About</Text>
-        <Text style={styles.profileBody}>{user.biography || 'No biography provided yet.'}</Text>
+      <View style={[styles.section, styles.pad20, styles.mb16]}>
+        <Text style={styles.sectionTitle}>About</Text>
+        <Text style={styles.bodyText}>{user.biography || 'No biography provided yet.'}</Text>
       </View>
 
       {user.role === 'volunteer' ? (
-        <View style={styles.profileSection}>
-          <Text style={styles.profileSectionTitle}>Recognitions</Text>
-          <Text style={styles.profileBody}>Completed jobs: {user.completedJobs}</Text>
-          <Text style={styles.profileBody}>Rating: {user.rating.toFixed(1)}</Text>
-          {!!user.skills?.length && <Text style={styles.profileBody}>Skills: {user.skills.join(', ')}</Text>}
+        <View style={[styles.section, styles.pad20, styles.mb16]}>
+          <Text style={styles.sectionTitle}>Recognitions</Text>
+          <Text style={styles.bodyText}>Completed jobs: {user.completedJobs}</Text>
+          <Text style={styles.bodyText}>Rating: {user.rating.toFixed(1)}</Text>
+          {!!user.skills?.length && <Text style={styles.bodyText}>Skills: {user.skills.join(', ')}</Text>}
         </View>
       ) : null}
 
       {user.role === 'requester' ? (
-        <View style={styles.profileSection}>
-          <Text style={styles.profileSectionTitle}>Interests</Text>
-          <Text style={styles.profileBody}>
+        <View style={[styles.section, styles.pad20, styles.mb16]}>
+          <Text style={styles.sectionTitle}>Interests</Text>
+          <Text style={styles.bodyText}>
             {user.interests?.length ? user.interests.join(', ') : 'No specific interests recorded yet.'}
           </Text>
         </View>

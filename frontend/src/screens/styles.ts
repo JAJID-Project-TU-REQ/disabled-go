@@ -2,14 +2,72 @@ import { StyleSheet } from 'react-native';
 import { colors } from '../theme/colors';
 
 export const styles = StyleSheet.create({
-  loginWrapper: {
+  screen: {
     flex: 1,
     backgroundColor: colors.background,
+  },
+  centered: {
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  flex1: {
+    flex: 1,
+  },
+  padHorizontal16: {
+    paddingHorizontal: 16,
+  },
+  padHorizontal20: {
+    paddingHorizontal: 20,
+  },
+  pad20: {
+    padding: 20,
+  },
+  pad24: {
     padding: 24,
   },
-  loginCard: {
+  pb40: {
+    paddingBottom: 40,
+  },
+  pb64: {
+    paddingBottom: 64,
+  },
+  pt32: {
+    paddingTop: 32,
+  },
+  mt12: {
+    marginTop: 12,
+  },
+  mt16: {
+    marginTop: 16,
+  },
+  mt20: {
+    marginTop: 20,
+  },
+  mt24: {
+    marginTop: 24,
+  },
+  mt32: {
+    marginTop: 32,
+  },
+  mb4: {
+    marginBottom: 4,
+  },
+  mb6: {
+    marginBottom: 6,
+  },
+  mb8: {
+    marginBottom: 8,
+  },
+  mb12: {
+    marginBottom: 12,
+  },
+  mb16: {
+    marginBottom: 16,
+  },
+  mv16: {
+    marginVertical: 16,
+  },
+  authCard: {
     width: '100%',
     backgroundColor: colors.card,
     padding: 24,
@@ -20,215 +78,121 @@ export const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 4,
   },
-  loginTitle: {
+  authTitle: {
     fontSize: 28,
     fontWeight: '700',
     color: colors.primary,
+    textAlign: 'center',
     marginBottom: 16,
-    textAlign: 'center',
   },
-  loginSubtitle: {
-    textAlign: 'center',
-    color: colors.muted,
-    marginBottom: 24,
-  },
-  loginRegisterLink: {
-    marginTop: 16,
-    textAlign: 'center',
-    color: colors.primary,
-    fontWeight: '600',
-  },
-
-  registerWrapper: {
-    flex: 1,
-    backgroundColor: colors.background,
-    paddingHorizontal: 20,
-  },
-  registerContent: {
-    paddingTop: 32,
-    paddingBottom: 64,
-  },
-  registerHeading: {
+  headingPrimary: {
     fontSize: 26,
     fontWeight: '700',
     color: colors.primary,
+    textAlign: 'center',
     marginBottom: 4,
-    textAlign: 'center',
   },
-  registerSubheading: {
-    textAlign: 'center',
-    color: colors.muted,
-    marginBottom: 24,
-  },
-  registerRoleSwitcher: {
-    flexDirection: 'row',
-    marginBottom: 24,
-    backgroundColor: '#e5f3f2',
-    borderRadius: 999,
-    padding: 6,
-  },
-  registerRoleButton: {
-    flex: 1,
-    paddingVertical: 12,
-    alignItems: 'center',
-    borderRadius: 999,
-  },
-  registerRoleButtonActive: {
-    backgroundColor: colors.primary,
-  },
-  registerRoleButtonText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: colors.primary,
-  },
-  registerRoleButtonTextActive: {
-    color: '#fff',
-  },
-  registerMultiline: {
-    height: 120,
-    textAlignVertical: 'top',
-  },
-  registerSignInLink: {
-    marginTop: 20,
-    textAlign: 'center',
-    color: colors.primary,
-    fontWeight: '600',
-  },
-
-  jobListContainer: {
-    flex: 1,
-    backgroundColor: colors.background,
-    paddingHorizontal: 16,
-  },
-  jobListHeader: {
+  heading: {
     fontSize: 22,
     fontWeight: '700',
-    marginVertical: 16,
     color: colors.text,
+    marginVertical: 16,
   },
-  jobListErrorText: {
-    color: colors.danger,
-    marginBottom: 12,
-  },
-  jobListContent: {
-    paddingBottom: 32,
-  },
-  jobListEmptyText: {
-    textAlign: 'center',
-    marginTop: 48,
-    color: colors.muted,
-  },
-  jobListCenterContent: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-
-  jobDetailContainer: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  jobDetailContent: {
-    padding: 20,
-    paddingBottom: 40,
-  },
-  jobDetailLoader: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  jobDetailTitle: {
+  title: {
     fontSize: 24,
     fontWeight: '700',
     color: colors.text,
     marginBottom: 4,
   },
-  jobDetailMeta: {
+  subtitle: {
+    textAlign: 'center',
     color: colors.muted,
-    marginBottom: 8,
+    marginBottom: 24,
   },
-  jobDetailSection: {
-    marginTop: 24,
+  link: {
+    textAlign: 'center',
+    color: colors.primary,
+    fontWeight: '600',
+  },
+  section: {
     backgroundColor: colors.card,
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,
     borderColor: '#e5e7eb',
   },
-  jobDetailSectionTitle: {
+  sectionTitle: {
     fontSize: 18,
     fontWeight: '700',
     color: colors.text,
     marginBottom: 8,
   },
-  jobDetailBodyText: {
+  bodyText: {
     fontSize: 15,
     lineHeight: 22,
     color: colors.text,
     marginBottom: 8,
   },
-  jobDetailBullet: {
+  bullet: {
     fontSize: 14,
     color: colors.text,
     marginBottom: 4,
   },
-  jobDetailInput: {
-    borderColor: colors.border,
+  meta: {
+    color: colors.muted,
+    marginBottom: 8,
   },
-  jobDetailTextArea: {
-    borderRadius: 12,
-    padding: 12,
-    minHeight: 100,
-    textAlignVertical: 'top',
-    backgroundColor: colors.card,
-  },
-
-  myJobsContainer: {
-    flex: 1,
-    backgroundColor: colors.background,
-    paddingHorizontal: 16,
-  },
-  myJobsHeading: {
-    fontSize: 22,
-    fontWeight: '700',
-    marginVertical: 16,
-    color: colors.text,
-  },
-  myJobsListContent: {
-    paddingBottom: 32,
-  },
-  myJobsCard: {
-    backgroundColor: colors.card,
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-  },
-  myJobsCardTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    marginBottom: 6,
-  },
-  myJobsCardMeta: {
+  metaCompact: {
     color: colors.muted,
     marginBottom: 4,
   },
-  myJobsEmpty: {
+  centerContent: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  listContent: {
+    paddingBottom: 32,
+  },
+  empty: {
     textAlign: 'center',
     color: colors.muted,
     marginTop: 24,
   },
-  myJobsRequesterContent: {
-    paddingBottom: 64,
+  emptyLarge: {
+    textAlign: 'center',
+    color: colors.muted,
+    marginTop: 48,
   },
-  myJobsLabel: {
-    fontSize: 14,
+  errorText: {
+    color: colors.danger,
+    marginBottom: 12,
+  },
+  roleSwitcher: {
+    flexDirection: 'row',
+    marginBottom: 24,
+    backgroundColor: '#e5f3f2',
+    borderRadius: 999,
+    padding: 6,
+  },
+  roleButton: {
+    flex: 1,
+    paddingVertical: 12,
+    alignItems: 'center',
+    borderRadius: 999,
+  },
+  roleButtonActive: {
+    backgroundColor: colors.primary,
+  },
+  roleButtonText: {
+    fontSize: 15,
     fontWeight: '600',
-    color: colors.text,
-    marginBottom: 6,
+    color: colors.primary,
   },
-  myJobsTextArea: {
+  roleButtonTextActive: {
+    color: '#fff',
+  },
+  textArea: {
     borderWidth: 1,
     borderColor: colors.border,
     borderRadius: 12,
@@ -237,59 +201,33 @@ export const styles = StyleSheet.create({
     textAlignVertical: 'top',
     minHeight: 120,
   },
-  myJobsInlineFields: {
+  textAreaSoft: {
+    textAlignVertical: 'top',
+    height: 120,
+  },
+  inlineFields: {
     flexDirection: 'row',
     columnGap: 12,
   },
-  myJobsInlineField: {
+  inlineField: {
     flex: 1,
   },
-
-  profileContainer: {
-    flex: 1,
-    backgroundColor: colors.background,
-    padding: 20,
-  },
-  profileHeaderCard: {
-    backgroundColor: colors.card,
-    borderRadius: 16,
-    padding: 20,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    marginBottom: 16,
-  },
-  profileTitle: {
-    fontSize: 24,
+  cardTitle: {
+    fontSize: 16,
     fontWeight: '700',
+    marginBottom: 6,
+  },
+  formLabel: {
+    fontSize: 14,
+    fontWeight: '600',
     color: colors.text,
     marginBottom: 6,
   },
-  profileRole: {
+  roleLabel: {
     fontWeight: '600',
     color: colors.primary,
-    marginBottom: 12,
   },
-  profileMeta: {
-    color: colors.muted,
-    marginBottom: 4,
-  },
-  profileSection: {
-    backgroundColor: colors.card,
-    borderRadius: 16,
-    padding: 20,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    marginBottom: 16,
-  },
-  profileSectionTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    marginBottom: 8,
-    color: colors.text,
-  },
-  profileBody: {
-    fontSize: 15,
-    color: colors.text,
-    lineHeight: 22,
+  fullWidth: {
+    width: '100%',
   },
 });

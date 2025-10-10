@@ -92,7 +92,7 @@ export const JobDetailScreen: React.FC<Props> = ({ route }) => {
 
   if (loading || !job) {
     return (
-      <View style={styles.jobDetailLoader}>
+      <View style={styles.centerContent}>
         <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
@@ -102,27 +102,27 @@ export const JobDetailScreen: React.FC<Props> = ({ route }) => {
   const isRequester = user?.role === 'requester';
 
   return (
-    <ScrollView style={styles.jobDetailContainer} contentContainerStyle={styles.jobDetailContent}> 
-      <Text style={styles.jobDetailTitle}>{job.title}</Text>
-      <Text style={styles.jobDetailMeta}>{job.location}</Text>
-      <Text style={styles.jobDetailMeta}>Scheduled on {job.scheduledOn}</Text>
-      <View style={styles.jobDetailSection}>
-        <Text style={styles.jobDetailSectionTitle}>Details</Text>
-        <Text style={styles.jobDetailBodyText}>{job.description}</Text>
-        <Text style={styles.jobDetailBodyText}>Meeting point: {job.meetingPoint}</Text>
-        <Text style={[styles.jobDetailSectionTitle, { marginTop: 12 }]}>Requirements</Text>
+    <ScrollView style={styles.screen} contentContainerStyle={[styles.pad20, styles.pb40]}>
+      <Text style={styles.title}>{job.title}</Text>
+      <Text style={styles.meta}>{job.location}</Text>
+      <Text style={styles.meta}>Scheduled on {job.scheduledOn}</Text>
+      <View style={[styles.section, styles.mt24]}>
+        <Text style={styles.sectionTitle}>Details</Text>
+        <Text style={styles.bodyText}>{job.description}</Text>
+        <Text style={styles.bodyText}>Meeting point: {job.meetingPoint}</Text>
+        <Text style={[styles.sectionTitle, styles.mt12]}>Requirements</Text>
         {job.requirements.map((item) => (
-          <Text key={item} style={styles.jobDetailBullet}>• {item}</Text>
+          <Text key={item} style={styles.bullet}>• {item}</Text>
         ))}
       </View>
       <PrimaryButton title="Open in Maps" onPress={openMap} variant="secondary" />
 
       {isVolunteer ? (
-        <View style={styles.jobDetailSection}>
-          <Text style={styles.jobDetailSectionTitle}>Apply now</Text>
-          <Text style={styles.jobDetailBodyText}>Let the requester know how you can help.</Text>
+        <View style={[styles.section, styles.mt24]}>
+          <Text style={styles.sectionTitle}>Apply now</Text>
+          <Text style={styles.bodyText}>Let the requester know how you can help.</Text>
           <TextInput
-            style={[styles.jobDetailTextArea, styles.jobDetailInput]}
+            style={[styles.textArea, styles.mt12]}
             placeholder="Message for requester"
             placeholderTextColor={colors.muted}
             multiline
@@ -135,9 +135,9 @@ export const JobDetailScreen: React.FC<Props> = ({ route }) => {
       ) : null}
 
       {isRequester ? (
-        <View style={styles.jobDetailSection}>
-          <Text style={styles.jobDetailSectionTitle}>Complete job</Text>
-          <Text style={styles.jobDetailBodyText}>
+        <View style={[styles.section, styles.mt24]}>
+          <Text style={styles.sectionTitle}>Complete job</Text>
+          <Text style={styles.bodyText}>
             Enter the volunteer ID and share a quick rating once the support has been provided.
           </Text>
           <FormField
@@ -158,7 +158,7 @@ export const JobDetailScreen: React.FC<Props> = ({ route }) => {
             onChangeText={setComment}
             multiline
             numberOfLines={3}
-            style={styles.jobDetailTextArea}
+            style={styles.textArea}
           />
           <PrimaryButton title="Record feedback" onPress={handleComplete} variant="secondary" />
         </View>

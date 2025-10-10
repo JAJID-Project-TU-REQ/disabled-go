@@ -25,11 +25,11 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
   return (
     <KeyboardAvoidingView
       behavior={Platform.select({ ios: 'padding', android: undefined })}
-      style={styles.loginWrapper}
+      style={[styles.screen, styles.centered, styles.pad24]}
     >
-      <View style={styles.loginCard}>
-        <Text style={styles.loginTitle}>Disabled Go</Text>
-        <Text style={styles.loginSubtitle}>Sign in to continue</Text>
+      <View style={styles.authCard}>
+        <Text style={styles.authTitle}>Disabled Go</Text>
+        <Text style={styles.subtitle}>Sign in to continue</Text>
         <FormField
           label="Email"
           autoCapitalize="none"
@@ -47,7 +47,7 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
         />
         <PrimaryButton title="Log in" onPress={handleLogin} loading={isLoading} />
         <TouchableOpacity onPress={() => navigation.navigate('Register')} disabled={isLoading}>
-          <Text style={styles.loginRegisterLink}>Need an account? Register</Text>
+          <Text style={[styles.link, styles.mt16]}>Need an account? Register</Text>
         </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>

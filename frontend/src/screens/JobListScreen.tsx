@@ -45,25 +45,25 @@ export const JobListScreen: React.FC = () => {
 
   if (loading) {
     return (
-      <View style={styles.jobListCenterContent}>
+      <View style={styles.centerContent}>
         <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }
 
   return (
-    <View style={styles.jobListContainer}>
-      <Text style={styles.jobListHeader}>Available opportunities</Text>
-      {error ? <Text style={styles.jobListErrorText}>{error}</Text> : null}
+    <View style={[styles.screen, styles.padHorizontal16]}>
+      <Text style={styles.heading}>Available opportunities</Text>
+      {error ? <Text style={styles.errorText}>{error}</Text> : null}
       <FlatList
         data={jobs}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.jobListContent}
+        contentContainerStyle={styles.listContent}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
         renderItem={({ item }) => (
           <JobCard job={item} onPress={() => navigation.navigate('JobDetail', { jobId: item.id })} />
         )}
-        ListEmptyComponent={<Text style={styles.jobListEmptyText}>No opportunities found yet.</Text>}
+        ListEmptyComponent={<Text style={styles.emptyLarge}>No opportunities found yet.</Text>}
       />
     </View>
   );
