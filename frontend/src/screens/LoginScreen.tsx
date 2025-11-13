@@ -13,14 +13,14 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
 export const LoginScreen: React.FC<Props> = ({ navigation }) => {
   const insets = useSafeAreaInsets();
   const { login, isLoading } = useAuth();
-  const [email, setEmail] = useState('anya.volunteer@example.com');
+  const [nationalId, setNationalId] = useState('1234567890123');
   const [password, setPassword] = useState('password');
 
   const handleLogin = async () => {
     try {
-      await login(email.trim(), password);
+      await login(nationalId.trim(), password);
     } catch (error) {
-      Alert.alert('Login failed', error instanceof Error ? error.message : 'Unable to sign in');
+      Alert.alert('เข้าสู่ระบบไม่สำเร็จ', error instanceof Error ? error.message : 'ไม่สามารถเข้าสู่ระบบได้');
     }
   };
 
@@ -31,25 +31,25 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
     >
       <View style={styles.authCard}>
         <Text style={styles.authTitle}>Disabled Go</Text>
-        <Text style={styles.subtitle}>Sign in to continue</Text>
         <FormField
-          label="Email"
+          label="เลขบัตรประชาชน"
           autoCapitalize="none"
-          keyboardType="email-address"
-          value={email}
-          onChangeText={setEmail}
-          placeholder="you@example.com"
+          keyboardType="numeric"
+          value={nationalId}
+          onChangeText={setNationalId}
+          placeholder="1234567890123"
+          maxLength={13}
         />
         <FormField
-          label="Password"
+          label="รหัสผ่าน"
           secureTextEntry
           value={password}
           onChangeText={setPassword}
           placeholder="••••••••"
         />
-        <PrimaryButton title="Log in" onPress={handleLogin} loading={isLoading} />
+        <PrimaryButton title="เข้าสู่ระบบ" onPress={handleLogin} loading={isLoading} />
         <TouchableOpacity onPress={() => navigation.navigate('Register')} disabled={isLoading}>
-          <Text style={[styles.link, styles.mt16]}>Need an account? Register</Text>
+          <Text style={[styles.link, styles.mt16]}>ยังไม่มีบัญชี? สมัครสมาชิก</Text>
         </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>

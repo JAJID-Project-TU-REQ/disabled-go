@@ -3,13 +3,17 @@ export type UserRole = 'volunteer' | 'requester';
 export type UserProfile = {
   id: string;
   role: UserRole;
-  fullName: string;
+  firstName: string;
+  lastName: string;
+  nationalId: string; // เลขบัตรประชาชน
   phone: string;
-  email: string;
-  address: string;
-  skills: string[];
-  interests: string[];
-  biography: string;
+  email?: string; // ไม่บังคับแล้ว
+  address?: string; // ไม่บังคับแล้ว
+  skills: string[]; // สำหรับอาสาสมัคร
+  biography: string; // เกี่ยวกับคุณ (สำหรับอาสาสมัคร)
+  disabilityType?: string; // ประเภทความพิการ (สำหรับผู้พิการ)
+  additionalNeeds?: string[]; // ความต้องการเพิ่มเติม (สำหรับผู้พิการ)
+  interests: string[]; // เก็บไว้สำหรับ backward compatibility
   rating: number;
   completedJobs: number;
   createdAt: string;

@@ -6,7 +6,7 @@ interface AuthState {
   user?: UserProfile;
   token?: string;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (nationalId: string, password: string) => Promise<void>;
   register: (payload: RegisterPayload) => Promise<void>;
   refreshProfile: () => Promise<void>;
   logout: () => void;
@@ -14,14 +14,15 @@ interface AuthState {
 
 export type RegisterPayload = {
   role: UserRole;
-  fullName: string;
-  email: string;
+  firstName: string;
+  lastName: string;
+  nationalId: string;
   phone: string;
-  address: string;
   password: string;
-  skills: string[];
-  interests: string[];
-  biography: string;
+  skills: string[]; // สำหรับอาสาสมัคร
+  biography: string; // สำหรับอาสาสมัคร
+  disabilityType?: string; // สำหรับผู้พิการ
+  additionalNeeds?: string[]; // สำหรับผู้พิการ
 };
 
 const AuthContext = createContext<AuthState | undefined>(undefined);
@@ -31,10 +32,10 @@ export function AuthProvider({ children }: PropsWithChildren) {
   const [token, setToken] = useState<string>();
   const [isLoading, setIsLoading] = useState(false);
 
-  const login = async (email: string, password: string) => {
+  const login = async (nationalId: string, password: string) => {
     setIsLoading(true);
     try {
-      const response = await api.login(email, password);
+      const response = await api.login(nationalId, password);
       setUser(response.user);
       setToken(response.token);
     } finally {
@@ -46,7 +47,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
     setIsLoading(true);
     try {
       await api.register({ ...payload });
-      await login(payload.email, payload.password);
+      await login(payload.nationalId, payload.password);
     } finally {
       setIsLoading(false);
     }

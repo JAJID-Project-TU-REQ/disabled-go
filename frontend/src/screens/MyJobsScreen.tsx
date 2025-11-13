@@ -57,7 +57,7 @@ export const MyJobsScreen: React.FC = () => {
         setJobs(response.jobs);
       }
     } catch (error) {
-      Alert.alert('Unable to load data', error instanceof Error ? error.message : 'Please try again later.');
+      Alert.alert('ไม่สามารถโหลดข้อมูลได้', error instanceof Error ? error.message : 'กรุณาลองใหม่อีกครั้ง');
     } finally {
       setLoading(false);
     }
@@ -80,7 +80,7 @@ export const MyJobsScreen: React.FC = () => {
   const handleCreateJob = async () => {
     if (!user) return;
     if (!jobForm.title || !jobForm.description) {
-      Alert.alert('Missing information', 'Title and description are required.');
+      Alert.alert('ข้อมูลไม่ครบถ้วน', 'กรุณากรอกหัวข้อและรายละเอียด');
       return;
     }
 
@@ -103,11 +103,11 @@ export const MyJobsScreen: React.FC = () => {
         latitude: Number.isNaN(latitude) ? 0 : latitude,
         longitude: Number.isNaN(longitude) ? 0 : longitude,
       });
-      Alert.alert('Request created', 'Volunteers will now be able to view your request.');
+      Alert.alert('สร้างงานเรียบร้อย', 'อาสาสมัครสามารถเห็นงานของคุณแล้ว');
       setJobForm(defaultJobForm);
       await loadData();
     } catch (error) {
-      Alert.alert('Unable to create request', error instanceof Error ? error.message : 'Please try again later.');
+      Alert.alert('ไม่สามารถสร้างงานได้', error instanceof Error ? error.message : 'กรุณาลองใหม่อีกครั้ง');
     } finally {
       setSubmitting(false);
     }
@@ -120,20 +120,20 @@ export const MyJobsScreen: React.FC = () => {
   if (user.role === 'volunteer') {
     return (
       <View style={[styles.screen, styles.padHorizontal16, getDynamicTopPadding(insets.top)]}>
-        <Text style={styles.heading}>My applications</Text>
+        <Text style={styles.heading}>ใบสมัครของฉัน</Text>
         <FlatList
           data={applications}
           keyExtractor={(item) => item.application.id}
           contentContainerStyle={styles.listContent}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
-          ListEmptyComponent={!loading ? <Text style={styles.empty}>No applications yet.</Text> : null}
+          ListEmptyComponent={!loading ? <Text style={styles.empty}>ยังไม่มีใบสมัคร</Text> : null}
           renderItem={({ item }) => (
             <View style={[styles.section, styles.mb12]}>
               <Text style={styles.cardTitle}>{item.job.title}</Text>
-              <Text style={styles.metaCompact}>Status: {item.application.status}</Text>
-              <Text style={styles.metaCompact}>Submitted on {new Date(item.application.createdAt).toLocaleDateString()}</Text>
+              <Text style={styles.metaCompact}>สถานะ: {item.application.status === 'pending' ? 'รอดำเนินการ' : item.application.status === 'completed' ? 'เสร็จสิ้น' : item.application.status}</Text>
+              <Text style={styles.metaCompact}>ส่งเมื่อ {new Date(item.application.createdAt).toLocaleDateString('th-TH')}</Text>
               <PrimaryButton
-                title="View details"
+                title="ดูรายละเอียด"
                 onPress={() => navigation.navigate('JobDetail', { jobId: item.job.id })}
                 variant="secondary"
               />
@@ -155,63 +155,63 @@ export const MyJobsScreen: React.FC = () => {
         keyboardShouldPersistTaps="handled"
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
       >
-        <Text style={styles.heading}>Create a new request</Text>
-        <FormField label="Title" value={jobForm.title} onChangeText={(text) => setField('title', text)} />
+        <Text style={styles.heading}>สร้างงานใหม่</Text>
+        <FormField label="หัวข้อ" value={jobForm.title} onChangeText={(text) => setField('title', text)} />
         <FormField
-          label="Scheduled on"
+          label="วันที่นัดหมาย"
           value={jobForm.scheduledOn}
           onChangeText={(text) => setField('scheduledOn', text)}
           placeholder="2025-02-15"
         />
         <FormField
-          label="Location"
+          label="สถานที่"
           value={jobForm.location}
           onChangeText={(text) => setField('location', text)}
-          placeholder="Hospital, district"
+          placeholder="โรงพยาบาล, เขต"
         />
         <FormField
-          label="Meeting point"
+          label="จุดนัดพบ"
           value={jobForm.meetingPoint}
           onChangeText={(text) => setField('meetingPoint', text)}
         />
         <FormField
-          label="Requirements"
+          label="ความต้องการ"
           value={jobForm.requirements}
           onChangeText={(text) => setField('requirements', text)}
-          placeholder="Wheelchair handling, Thai language"
-          helperText="Separate with commas"
+          placeholder="การช่วยเหลือผู้ใช้รถเข็น, ภาษาไทย"
+          helperText="คั่นด้วยเครื่องหมายจุลภาค"
         />
-        <Text style={styles.formLabel}>Description</Text>
+        <Text style={styles.formLabel}>รายละเอียด</Text>
         <TextInput
           style={styles.textArea}
           multiline
           numberOfLines={4}
           value={jobForm.description}
           onChangeText={(text) => setField('description', text)}
-          placeholder="Share details for volunteers"
+          placeholder="แชร์รายละเอียดให้อาสาสมัคร"
           placeholderTextColor={colors.muted}
         />
         <View style={styles.inlineFields}>
           <FormField
-            label="Latitude"
+            label="ละติจูด"
             value={jobForm.latitude}
             onChangeText={(text) => setField('latitude', text)}
             keyboardType="decimal-pad"
             containerStyle={styles.inlineField}
           />
           <FormField
-            label="Longitude"
+            label="ลองจิจูด"
             value={jobForm.longitude}
             onChangeText={(text) => setField('longitude', text)}
             keyboardType="decimal-pad"
             containerStyle={styles.inlineField}
           />
         </View>
-        <PrimaryButton title="Publish request" onPress={handleCreateJob} loading={submitting} />
+        <PrimaryButton title="เผยแพร่งาน" onPress={handleCreateJob} loading={submitting} />
 
-        <Text style={[styles.heading, styles.mt32]}>Your requests</Text>
+        <Text style={[styles.heading, styles.mt32]}>งานของคุณ</Text>
         {jobs.length === 0 ? (
-          <Text style={styles.empty}>No requests yet. Create one above to get started.</Text>
+          <Text style={styles.empty}>ยังไม่มีงาน สร้างงานใหม่ด้านบนเพื่อเริ่มต้น</Text>
         ) : (
           jobs.map((job) => (
             <JobCard key={job.id} job={job} onPress={() => navigation.navigate('JobDetail', { jobId: job.id })} />

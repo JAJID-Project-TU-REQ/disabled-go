@@ -5,19 +5,20 @@ import { colors } from '../theme/colors';
 interface Props extends TextInputProps {
   label: string;
   helperText?: string;
+  error?: boolean; // ถ้าเป็น true จะแสดง helperText เป็นสีแดง
   containerStyle?: StyleProp<ViewStyle>;
 }
 
-export const FormField: React.FC<Props> = ({ label, helperText, style, containerStyle, ...inputProps }) => {
+export const FormField: React.FC<Props> = ({ label, helperText, error, style, containerStyle, ...inputProps }) => {
   return (
     <View style={[styles.container, containerStyle]}>
       <Text style={styles.label}>{label}</Text>
       <TextInput
         placeholderTextColor={colors.muted}
-        style={[styles.input, style]}
+        style={[styles.input, error && styles.inputError, style]}
         {...inputProps}
       />
-      {helperText ? <Text style={styles.helper}>{helperText}</Text> : null}
+      {helperText ? <Text style={[styles.helper, error && styles.helperError]}>{helperText}</Text> : null}
     </View>
   );
 };
@@ -41,9 +42,15 @@ const styles = StyleSheet.create({
     fontSize: 16,
     backgroundColor: colors.card,
   },
+  inputError: {
+    borderColor: colors.danger,
+  },
   helper: {
     fontSize: 12,
     color: colors.muted,
     marginTop: 4,
+  },
+  helperError: {
+    color: colors.danger,
   },
 });

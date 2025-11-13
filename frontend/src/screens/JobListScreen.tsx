@@ -25,7 +25,7 @@ export const JobListScreen: React.FC = () => {
       const response = await api.getJobs();
       setJobs(response.jobs);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unable to fetch jobs');
+      setError(err instanceof Error ? err.message : 'ไม่สามารถโหลดงานได้');
     } finally {
       setLoading(false);
     }
@@ -55,7 +55,7 @@ export const JobListScreen: React.FC = () => {
 
   return (
     <View style={[styles.screen, styles.padHorizontal16, getDynamicTopPadding(insets.top)]}>
-      <Text style={styles.heading}>Available opportunities</Text>
+      <Text style={styles.heading}>งานที่เปิดรับ</Text>
       {error ? <Text style={styles.errorText}>{error}</Text> : null}
       <FlatList
         data={jobs}
@@ -65,7 +65,7 @@ export const JobListScreen: React.FC = () => {
         renderItem={({ item }) => (
           <JobCard job={item} onPress={() => navigation.navigate('JobDetail', { jobId: item.id })} />
         )}
-        ListEmptyComponent={<Text style={styles.emptyLarge}>No opportunities found yet.</Text>}
+        ListEmptyComponent={<Text style={styles.emptyLarge}>ยังไม่มีงานที่เปิดรับ</Text>}
       />
     </View>
   );

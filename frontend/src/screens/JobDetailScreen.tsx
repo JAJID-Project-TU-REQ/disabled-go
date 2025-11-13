@@ -26,7 +26,7 @@ export const JobDetailScreen: React.FC<Props> = ({ route }) => {
   const { user } = useAuth();
   const [job, setJob] = useState<JobDetail>();
   const [loading, setLoading] = useState(true);
-  const [message, setMessage] = useState('Ready to support you!');
+  const [message, setMessage] = useState('พร้อมให้ความช่วยเหลือ!');
   const [volunteerId, setVolunteerId] = useState('');
   const [rating, setRating] = useState('5');
   const [comment, setComment] = useState('');
@@ -38,7 +38,7 @@ export const JobDetailScreen: React.FC<Props> = ({ route }) => {
         const response = await api.getJob(route.params.jobId);
         setJob(response);
       } catch (error) {
-        Alert.alert('Failed to load job', error instanceof Error ? error.message : 'Please try again later');
+        Alert.alert('โหลดงานไม่สำเร็จ', error instanceof Error ? error.message : 'กรุณาลองใหม่อีกครั้ง');
       } finally {
         setLoading(false);
       }
@@ -54,20 +54,20 @@ export const JobDetailScreen: React.FC<Props> = ({ route }) => {
         volunteerId: user.id,
         message,
       });
-      Alert.alert('Application sent', 'The requester has been notified of your interest.');
+      Alert.alert('ส่งใบสมัครแล้ว', 'ผู้ขอความช่วยเหลือได้รับแจ้งเตือนแล้ว');
     } catch (error) {
-      Alert.alert('Could not apply', error instanceof Error ? error.message : 'Please try again.');
+      Alert.alert('ไม่สามารถสมัครได้', error instanceof Error ? error.message : 'กรุณาลองใหม่อีกครั้ง');
     }
   };
 
   const handleComplete = async () => {
     if (!volunteerId.trim()) {
-      Alert.alert('Volunteer required', 'Enter the volunteer ID to record feedback.');
+      Alert.alert('ต้องระบุอาสาสมัคร', 'กรุณากรอกรหัสอาสาสมัครเพื่อบันทึกผลการให้ความช่วยเหลือ');
       return;
     }
     const ratingValue = Number(rating);
     if (Number.isNaN(ratingValue) || ratingValue < 0 || ratingValue > 5) {
-      Alert.alert('Invalid rating', 'Rating should be between 0 and 5.');
+      Alert.alert('คะแนนไม่ถูกต้อง', 'คะแนนต้องอยู่ระหว่าง 0 ถึง 5');
       return;
     }
 
@@ -77,9 +77,9 @@ export const JobDetailScreen: React.FC<Props> = ({ route }) => {
         rating: ratingValue,
         comment,
       });
-      Alert.alert('Job closed', 'Feedback saved successfully.');
+      Alert.alert('ปิดงานแล้ว', 'บันทึกผลการให้ความช่วยเหลือเรียบร้อย');
     } catch (error) {
-      Alert.alert('Unable to close job', error instanceof Error ? error.message : 'Please try again.');
+      Alert.alert('ไม่สามารถปิดงานได้', error instanceof Error ? error.message : 'กรุณาลองใหม่อีกครั้ง');
     }
   };
 
@@ -88,7 +88,7 @@ export const JobDetailScreen: React.FC<Props> = ({ route }) => {
     const { latitude, longitude } = job;
     const url = `https://maps.google.com/?q=${latitude},${longitude}`;
     Linking.openURL(url).catch(() => {
-      Alert.alert('Unable to open maps');
+      Alert.alert('ไม่สามารถเปิดแผนที่ได้');
     });
   };
 
@@ -110,62 +110,62 @@ export const JobDetailScreen: React.FC<Props> = ({ route }) => {
     >
       <Text style={styles.title}>{job.title}</Text>
       <Text style={styles.meta}>{job.location}</Text>
-      <Text style={styles.meta}>Scheduled on {job.scheduledOn}</Text>
+      <Text style={styles.meta}>กำหนดการ: {job.scheduledOn}</Text>
       <View style={[styles.section, styles.mt24]}>
-        <Text style={styles.sectionTitle}>Details</Text>
+        <Text style={styles.sectionTitle}>รายละเอียด</Text>
         <Text style={styles.bodyText}>{job.description}</Text>
-        <Text style={styles.bodyText}>Meeting point: {job.meetingPoint}</Text>
-        <Text style={[styles.sectionTitle, styles.mt12]}>Requirements</Text>
+        <Text style={styles.bodyText}>จุดนัดพบ: {job.meetingPoint}</Text>
+        <Text style={[styles.sectionTitle, styles.mt12]}>ความต้องการ</Text>
         {job.requirements.map((item) => (
           <Text key={item} style={styles.bullet}>• {item}</Text>
         ))}
       </View>
-      <PrimaryButton title="Open in Maps" onPress={openMap} variant="secondary" />
+      <PrimaryButton title="เปิดแผนที่" onPress={openMap} variant="secondary" />
 
       {isVolunteer ? (
         <View style={[styles.section, styles.mt24]}>
-          <Text style={styles.sectionTitle}>Apply now</Text>
-          <Text style={styles.bodyText}>Let the requester know how you can help.</Text>
+          <Text style={styles.sectionTitle}>สมัครงาน</Text>
+          <Text style={styles.bodyText}>แจ้งผู้ขอความช่วยเหลือว่าคุณสามารถช่วยได้อย่างไร</Text>
           <TextInput
             style={[styles.textArea, styles.mt12]}
-            placeholder="Message for requester"
+            placeholder="ข้อความถึงผู้ขอความช่วยเหลือ"
             placeholderTextColor={colors.muted}
             multiline
             numberOfLines={4}
             value={message}
             onChangeText={setMessage}
           />
-          <PrimaryButton title="Send application" onPress={handleApply} />
+          <PrimaryButton title="ส่งใบสมัคร" onPress={handleApply} />
         </View>
       ) : null}
 
       {isRequester ? (
         <View style={[styles.section, styles.mt24]}>
-          <Text style={styles.sectionTitle}>Complete job</Text>
+          <Text style={styles.sectionTitle}>ปิดงาน</Text>
           <Text style={styles.bodyText}>
-            Enter the volunteer ID and share a quick rating once the support has been provided.
+            กรอกรหัสอาสาสมัครและให้คะแนนหลังจากได้รับความช่วยเหลือแล้ว
           </Text>
           <FormField
-            label="Volunteer ID"
+            label="รหัสอาสาสมัคร"
             value={volunteerId}
             onChangeText={setVolunteerId}
-            placeholder="volunteer-1"
+            placeholder="user-1"
           />
           <FormField
-            label="Rating (0-5)"
+            label="คะแนน (0-5)"
             value={rating}
             onChangeText={setRating}
             keyboardType="decimal-pad"
           />
           <FormField
-            label="Comment"
+            label="ความคิดเห็น"
             value={comment}
             onChangeText={setComment}
             multiline
             numberOfLines={3}
             style={styles.textArea}
           />
-          <PrimaryButton title="Record feedback" onPress={handleComplete} variant="secondary" />
+          <PrimaryButton title="บันทึกผลการให้ความช่วยเหลือ" onPress={handleComplete} variant="secondary" />
         </View>
       ) : null}
     </ScrollView>

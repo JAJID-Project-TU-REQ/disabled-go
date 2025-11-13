@@ -47,13 +47,13 @@ const MainTabs = () => {
         },
       })}
     >
-      <Tabs.Screen name="Explore" component={JobListScreen} options={{ title: 'Explore' }} />
+      <Tabs.Screen name="Explore" component={JobListScreen} options={{ title: 'สำรวจ' }} />
       <Tabs.Screen
         name="MyJobs"
         component={MyJobsScreen}
-        options={{ title: user?.role === 'volunteer' ? 'My Applications' : 'Requests' }}
+        options={{ title: user?.role === 'volunteer' ? 'ใบสมัครของฉัน' : 'งานของฉัน' }}
       />
-      <Tabs.Screen name="Profile" component={ProfileScreen} options={{ title: 'Profile' }} />
+      <Tabs.Screen name="Profile" component={ProfileScreen} options={{ title: 'โปรไฟล์' }} />
     </Tabs.Navigator>
   );
 };
@@ -70,7 +70,7 @@ export const AppNavigator = () => {
             <Stack.Screen
               name="JobDetail"
               component={JobDetailScreen}
-              options={{ title: 'Job details' }}
+              options={{ title: 'รายละเอียดงาน' }}
             />
           </>
         ) : (
