@@ -10,6 +10,11 @@ import { JobListScreen } from '../screens/JobListScreen';
 import { JobDetailScreen } from '../screens/JobDetailScreen';
 import { MyJobsScreen } from '../screens/MyJobsScreen';
 import { ProfileScreen } from '../screens/ProfileScreen';
+import { CreateJobScreen } from '../screens/CreateJobScreen';
+import { EditJobScreen } from '../screens/EditJobScreen';
+import { LocationPickerScreen } from '../screens/LocationPickerScreen';
+import { ApplicationsListScreen } from '../screens/ApplicationsListScreen';
+import { EditProfileScreen } from '../screens/EditProfileScreen';
 import { colors } from '../theme/colors';
 import { MainTabParamList, RootStackParamList } from './types';
 
@@ -47,11 +52,15 @@ const MainTabs = () => {
         },
       })}
     >
-      <Tabs.Screen name="Explore" component={JobListScreen} options={{ title: 'สำรวจ' }} />
+      <Tabs.Screen
+        name="Explore"
+        component={JobListScreen}
+        options={{ title: user?.role === 'requester' ? 'งานของฉัน' : 'สำรวจ' }}
+      />
       <Tabs.Screen
         name="MyJobs"
         component={MyJobsScreen}
-        options={{ title: user?.role === 'volunteer' ? 'ใบสมัครของฉัน' : 'งานของฉัน' }}
+        options={{ title: user?.role === 'volunteer' ? 'ใบสมัครของฉัน' : 'ประวัติงาน' }}
       />
       <Tabs.Screen name="Profile" component={ProfileScreen} options={{ title: 'โปรไฟล์' }} />
     </Tabs.Navigator>
@@ -71,6 +80,36 @@ export const AppNavigator = () => {
               name="JobDetail"
               component={JobDetailScreen}
               options={{ title: 'รายละเอียดงาน' }}
+            />
+            <Stack.Screen
+              name="CreateJob"
+              component={CreateJobScreen}
+              options={{ title: 'สร้างงานใหม่' }}
+            />
+            <Stack.Screen
+              name="EditJob"
+              component={EditJobScreen}
+              options={{ title: 'แก้ไขรายละเอียดงาน' }}
+            />
+            <Stack.Screen
+              name="LocationPicker"
+              component={LocationPickerScreen}
+              options={{ title: 'เลือกตำแหน่ง' }}
+            />
+            <Stack.Screen
+              name="ApplicationsList"
+              component={ApplicationsListScreen}
+              options={{ title: 'ผู้สมัครงาน' }}
+            />
+            <Stack.Screen
+              name="Profile"
+              component={ProfileScreen}
+              options={{ title: 'โปรไฟล์' }}
+            />
+            <Stack.Screen
+              name="EditProfile"
+              component={EditProfileScreen}
+              options={{ title: 'แก้ไขโปรไฟล์' }}
             />
           </>
         ) : (

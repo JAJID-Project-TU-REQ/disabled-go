@@ -1,13 +1,64 @@
-import React from 'react';
-import { Text, View } from 'react-native';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { api } from '../api/client';
 import { PrimaryButton } from '../components/PrimaryButton';
 import { useAuth } from '../context/AuthContext';
+import { MainTabParamList, RootStackParamList } from '../navigation/types';
+import { UserProfile } from '../types';
+import { colors } from '../theme/colors';
 import { getDynamicTopPadding, styles } from './styles';
 
-export const ProfileScreen: React.FC = () => {
+type StackProps = NativeStackScreenProps<RootStackParamList, 'Profile'>;
+type TabProps = BottomTabScreenProps<MainTabParamList, 'Profile'>;
+type Props = StackProps | TabProps;
+
+const isStackProps = (props: Props): props is StackProps => {
+  return 'params' in props.route && props.route.params !== undefined;
+};
+
+export const ProfileScreen: React.FC<Props> = (props) => {
+  const route = isStackProps(props) ? props.route : { params: undefined };
+  const stackNavigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const insets = useSafeAreaInsets();
-  const { user, refreshProfile, logout, isLoading } = useAuth();
+  const { user: currentUser, refreshProfile, logout, isLoading } = useAuth();
+  const [viewingUser, setViewingUser] = useState<UserProfile | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  // ถ้ามี userId ใน params แสดงว่าเป็นการดู profile ของคนอื่น
+  const userId = route.params?.userId;
+  const isViewingOther = !!userId;
+  const user = isViewingOther ? viewingUser : currentUser;
+
+  useEffect(() => {
+    if (isViewingOther && userId) {
+      loadUserProfile(userId);
+    }
+  }, [userId, isViewingOther]);
+
+  const loadUserProfile = async (id: string) => {
+    setLoading(true);
+    try {
+      const profile = await api.getUser(id);
+      setViewingUser(profile);
+    } catch (error) {
+      // Handle error
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <View style={[styles.screen, styles.centerContent, getDynamicTopPadding(insets.top)]}>
+        <ActivityIndicator size="large" color={colors.primary} />
+      </View>
+    );
+  }
 
   if (!user) {
     return null;
@@ -60,7 +111,7 @@ export const ProfileScreen: React.FC = () => {
   };
 
   return (
-    <View style={[styles.screen, styles.pad20, getDynamicTopPadding(insets.top)]}>
+    <ScrollView style={[styles.screen, getDynamicTopPadding(insets.top)]} contentContainerStyle={styles.pad20}>
       <View style={[styles.section, styles.pad20, styles.mb16]}>
         <Text style={styles.title}>{user.firstName} {user.lastName}</Text>
         <Text style={[styles.roleLabel, styles.mb12]}>
@@ -70,15 +121,12 @@ export const ProfileScreen: React.FC = () => {
         <Text style={styles.metaCompact}>เบอร์โทรศัพท์: {user.phone}</Text>
         {user.email && <Text style={styles.metaCompact}>อีเมล: {user.email}</Text>}
         {user.address && <Text style={styles.metaCompact}>ที่อยู่: {user.address}</Text>}
-      </View>
 
-      {user.role === 'volunteer' ? (
-        <>
-          <View style={[styles.section, styles.pad20, styles.mb16]}>
+        {user.role === 'volunteer' ? (
+          <>
             <Text style={styles.sectionTitle}>เกี่ยวกับ</Text>
             <Text style={styles.bodyText}>{user.biography || 'ยังไม่มีข้อมูลเกี่ยวกับคุณ'}</Text>
-          </View>
-          <View style={[styles.section, styles.pad20, styles.mb16]}>
+            
             <Text style={styles.sectionTitle}>ผลงาน</Text>
             <Text style={styles.bodyText}>งานที่ทำเสร็จ: {user.completedJobs}</Text>
             <Text style={styles.bodyText}>คะแนน: {user.rating.toFixed(1)}</Text>
@@ -87,29 +135,40 @@ export const ProfileScreen: React.FC = () => {
                 ทักษะ: {user.skills.map(getSkillLabel).join(', ')}
               </Text>
             )}
-          </View>
-        </>
-      ) : (
+          </>
+        ) : (
+          <>
+            {user.disabilityType && (
+              <>
+                <Text style={styles.sectionTitle}>ประเภทความพิการ</Text>
+                <Text style={styles.bodyText}>{getDisabilityTypeLabel(user.disabilityType)}</Text>
+              </>
+            )}
+            {user.additionalNeeds && user.additionalNeeds.length > 0 && (
+              <>
+                <Text style={styles.sectionTitle}>ความต้องการเพิ่มเติม</Text>
+                <Text style={styles.bodyText}>
+                  {user.additionalNeeds.map(getAdditionalNeedLabel).join(', ')}
+                </Text>
+              </>
+            )}
+          </>
+        )}
+      </View>
+
+      {!isViewingOther && (
         <>
-          {user.disabilityType && (
-            <View style={[styles.section, styles.pad20, styles.mb16]}>
-              <Text style={styles.sectionTitle}>ประเภทความพิการ</Text>
-              <Text style={styles.bodyText}>{getDisabilityTypeLabel(user.disabilityType)}</Text>
-            </View>
-          )}
-          {user.additionalNeeds && user.additionalNeeds.length > 0 && (
-            <View style={[styles.section, styles.pad20, styles.mb16]}>
-              <Text style={styles.sectionTitle}>ความต้องการเพิ่มเติม</Text>
-              <Text style={styles.bodyText}>
-                {user.additionalNeeds.map(getAdditionalNeedLabel).join(', ')}
-              </Text>
-            </View>
-          )}
+          <PrimaryButton 
+            title="แก้ไขโปรไฟล์" 
+            onPress={() => {
+              stackNavigation.navigate('EditProfile');
+            }} 
+            disabled={isLoading} 
+            variant="secondary" 
+          />
+          <PrimaryButton title="ออกจากระบบ" onPress={logout} variant="danger" style={{ marginTop: 12 }} />
         </>
       )}
-
-      <PrimaryButton title="รีเฟรชโปรไฟล์" onPress={refreshProfile} disabled={isLoading} variant="secondary" />
-      <PrimaryButton title="ออกจากระบบ" onPress={logout} variant="danger" />
-    </View>
+    </ScrollView>
   );
 };

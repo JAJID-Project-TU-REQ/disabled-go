@@ -1,5 +1,6 @@
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import React, { useEffect, useState } from 'react';
+import { useFocusEffect, CommonActions } from '@react-navigation/native';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -7,52 +8,68 @@ import {
   ScrollView,
   Text,
   TextInput,
+  TouchableOpacity,
   View,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import MapView, { Marker } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api } from '../api/client';
-import { FormField } from '../components/FormField';
 import { PrimaryButton } from '../components/PrimaryButton';
+import { StarRating } from '../components/StarRating';
 import { useAuth } from '../context/AuthContext';
 import { RootStackParamList } from '../navigation/types';
-import { JobDetail } from '../types';
+import { JobDetail, UserProfile } from '../types';
 import { colors } from '../theme/colors';
 import { getDynamicTopPadding, styles } from './styles';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'JobDetail'>;
 
-export const JobDetailScreen: React.FC<Props> = ({ route }) => {
+export const JobDetailScreen: React.FC<Props> = ({ route, navigation }) => {
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
   const [job, setJob] = useState<JobDetail>();
   const [loading, setLoading] = useState(true);
-  const [message, setMessage] = useState('พร้อมให้ความช่วยเหลือ!');
-  const [volunteerId, setVolunteerId] = useState('');
-  const [rating, setRating] = useState('5');
-  const [comment, setComment] = useState('');
+  const [acceptedVolunteer, setAcceptedVolunteer] = useState<UserProfile | null>(null);
+  const [rating, setRating] = useState(0);
+  const [review, setReview] = useState('');
+  const [submittingRating, setSubmittingRating] = useState(false);
 
-  useEffect(() => {
-    const loadJob = async () => {
-      setLoading(true);
-      try {
-        const response = await api.getJob(route.params.jobId);
-        setJob(response);
-      } catch (error) {
-        Alert.alert('โหลดงานไม่สำเร็จ', error instanceof Error ? error.message : 'กรุณาลองใหม่อีกครั้ง');
-      } finally {
-        setLoading(false);
+  const loadJob = useCallback(async () => {
+    setLoading(true);
+    try {
+      const response = await api.getJob(route.params.jobId);
+      setJob(response);
+      
+      // โหลดข้อมูลผู้ดูแลถ้ามี
+      if (response.acceptedVolunteerId) {
+        try {
+          const volunteer = await api.getUser(response.acceptedVolunteerId);
+          setAcceptedVolunteer(volunteer);
+        } catch {
+          setAcceptedVolunteer(null);
+        }
+      } else {
+        setAcceptedVolunteer(null);
       }
-    };
-
-    loadJob();
+    } catch (error) {
+      Alert.alert('โหลดงานไม่สำเร็จ', error instanceof Error ? error.message : 'กรุณาลองใหม่อีกครั้ง');
+    } finally {
+      setLoading(false);
+    }
   }, [route.params.jobId]);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadJob();
+    }, [loadJob])
+  );
 
   const handleApply = async () => {
     if (!user) return;
     try {
       await api.applyToJob(route.params.jobId, {
         volunteerId: user.id,
-        message,
       });
       Alert.alert('ส่งใบสมัครแล้ว', 'ผู้ขอความช่วยเหลือได้รับแจ้งเตือนแล้ว');
     } catch (error) {
@@ -60,27 +77,44 @@ export const JobDetailScreen: React.FC<Props> = ({ route }) => {
     }
   };
 
-  const handleComplete = async () => {
-    if (!volunteerId.trim()) {
-      Alert.alert('ต้องระบุอาสาสมัคร', 'กรุณากรอกรหัสอาสาสมัครเพื่อบันทึกผลการให้ความช่วยเหลือ');
-      return;
-    }
-    const ratingValue = Number(rating);
-    if (Number.isNaN(ratingValue) || ratingValue < 0 || ratingValue > 5) {
-      Alert.alert('คะแนนไม่ถูกต้อง', 'คะแนนต้องอยู่ระหว่าง 0 ถึง 5');
-      return;
-    }
 
+  // Format วันที่
+  const formatDate = (): string => {
+    if (!job) return '';
+    const dateStr = job.workDate;
+    if (!dateStr) return '';
+    
     try {
-      await api.completeJob(route.params.jobId, {
-        volunteerId: volunteerId.trim(),
-        rating: ratingValue,
-        comment,
+      let date: Date;
+      if (dateStr.match(/^\d{4}-\d{2}-\d{2}$/)) {
+        const [year, month, day] = dateStr.split('-').map(Number);
+        date = new Date(year, month - 1, day);
+      } else {
+        date = new Date(dateStr);
+      }
+      return date.toLocaleDateString('th-TH', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
       });
-      Alert.alert('ปิดงานแล้ว', 'บันทึกผลการให้ความช่วยเหลือเรียบร้อย');
-    } catch (error) {
-      Alert.alert('ไม่สามารถปิดงานได้', error instanceof Error ? error.message : 'กรุณาลองใหม่อีกครั้ง');
+    } catch {
+      return dateStr;
     }
+  };
+
+  // Format เวลา
+  const formatTimeRange = (): string => {
+    if (!job) return '';
+    if (job.startTime && job.endTime) {
+      return `${job.startTime} - ${job.endTime}`;
+    }
+    if (job.startTime) {
+      return `${job.startTime} - ?`;
+    }
+    if (job.endTime) {
+      return `? - ${job.endTime}`;
+    }
+    return '';
   };
 
   const openMap = () => {
@@ -108,64 +142,280 @@ export const JobDetailScreen: React.FC<Props> = ({ route }) => {
       style={styles.screen}
       contentContainerStyle={[styles.pad20, styles.pb40, getDynamicTopPadding(insets.top)]}
     >
-      <Text style={styles.title}>{job.title}</Text>
-      <Text style={styles.meta}>{job.location}</Text>
-      <Text style={styles.meta}>กำหนดการ: {job.scheduledOn}</Text>
-      <View style={[styles.section, styles.mt24]}>
-        <Text style={styles.sectionTitle}>รายละเอียด</Text>
-        <Text style={styles.bodyText}>{job.description}</Text>
-        <Text style={styles.bodyText}>จุดนัดพบ: {job.meetingPoint}</Text>
-        <Text style={[styles.sectionTitle, styles.mt12]}>ความต้องการ</Text>
-        {job.requirements.map((item) => (
-          <Text key={item} style={styles.bullet}>• {item}</Text>
-        ))}
+      {/* ชื่องาน */}
+      <Text style={styles.titleCenter}>{job.title}</Text>
+
+      {/* หัวข้อ "รายละเอียด" */}
+      <Text style={styles.sectionTitle}>รายละเอียด</Text>
+      
+      {/* วันที่ */}
+      <View style={styles.detailRow}>
+        <Ionicons name="calendar-outline" size={20} color={colors.muted} style={styles.detailIcon} />
+        <Text style={styles.detailText}>{formatDate()}</Text>
       </View>
-      <PrimaryButton title="เปิดแผนที่" onPress={openMap} variant="secondary" />
+
+      {/* เวลา */}
+      <View style={styles.detailRow}>
+        <Ionicons name="time-outline" size={20} color={colors.muted} style={styles.detailIcon} />
+        <Text style={styles.detailText}>{formatTimeRange()}</Text>
+      </View>
+
+      {/* สถานที่ */}
+      <View style={styles.detailRow}>
+        <Ionicons name="location-outline" size={20} color={colors.muted} style={styles.detailIcon} />
+        <Text style={styles.detailText}>{job.location}</Text>
+      </View>
+
+      {/* แผนที่ขนาดเล็ก */}
+      <TouchableOpacity onPress={openMap} style={styles.mapContainer} activeOpacity={0.8}>
+        <MapView
+          style={styles.smallMap}
+          initialRegion={{
+            latitude: job.latitude,
+            longitude: job.longitude,
+            latitudeDelta: 0.01,
+            longitudeDelta: 0.01,
+          }}
+          scrollEnabled={false}
+          zoomEnabled={false}
+        >
+          <Marker
+            coordinate={{
+              latitude: job.latitude,
+              longitude: job.longitude,
+            }}
+          />
+        </MapView>
+      </TouchableOpacity>
+
+      {/* หัวข้อ "รายละเอียดเพิ่มเติม" */}
+      <Text style={styles.sectionTitle}>รายละเอียดเพิ่มเติม</Text>
+      <Text style={styles.bodyText}>{job.description || 'ไม่มีรายละเอียดเพิ่มเติม'}</Text>
+
+      {/* ส่วนสำหรับ requester (งานที่เสร็จสิ้นแล้ว) - ให้คะแนนผู้ดูแล */}
+      {isRequester && job.status === 'completed' && acceptedVolunteer && (
+        <>
+          <Text style={styles.sectionTitle}>ให้คะแนนผู้ดูแล</Text>
+          
+          <View style={styles.ratingCard}>
+            {/* ชื่อผู้ดูแล */}
+            <Text style={styles.caregiverName}>
+              {acceptedVolunteer.firstName} {acceptedVolunteer.lastName}
+            </Text>
+
+            {/* ถ้ายังไม่ได้ให้คะแนน - แสดง form */}
+            {!job.requesterRating ? (
+              <>
+                {/* การให้คะแนน */}
+                <View style={styles.ratingContainer}>
+                  <StarRating
+                    rating={rating}
+                    onRatingChange={setRating}
+                    disabled={false}
+                    size={36}
+                  />
+                </View>
+
+                {/* ช่องแสดงความคิดเห็น */}
+                <Text style={styles.formLabel}>ความคิดเห็น</Text>
+                <TextInput
+                  style={styles.reviewTextArea}
+                  multiline
+                  numberOfLines={4}
+                  value={review}
+                  onChangeText={setReview}
+                  placeholder="เขียนความคิดเห็นเกี่ยวกับการทำงานของผู้ดูแล..."
+                  placeholderTextColor={colors.muted}
+                  editable={true}
+                />
+
+                {/* ปุ่มยืนยันการให้คะแนน */}
+                <PrimaryButton
+                  title="ยืนยันการให้คะแนน"
+                  onPress={async () => {
+                    if (rating === 0) {
+                      Alert.alert('กรุณาให้คะแนน', 'กรุณาเลือกจำนวนดาวที่ต้องการให้คะแนน');
+                      return;
+                    }
+                    
+                    setSubmittingRating(true);
+                    try {
+                      await api.submitRating(job.id, {
+                        rating,
+                        review: review.trim(),
+                      });
+                      // Reload job เพื่อแสดงข้อมูลที่อัปเดต
+                      await loadJob();
+                      Alert.alert('ให้คะแนนเรียบร้อย', 'ขอบคุณสำหรับการให้คะแนน');
+                    } catch (error) {
+                      Alert.alert('ไม่สามารถให้คะแนนได้', error instanceof Error ? error.message : 'กรุณาลองใหม่อีกครั้ง');
+                    } finally {
+                      setSubmittingRating(false);
+                    }
+                  }}
+                  loading={submittingRating}
+                  disabled={submittingRating}
+                />
+              </>
+            ) : (
+              /* ถ้าให้คะแนนแล้ว - แสดงข้อมูล (read-only) */
+              <>
+                {/* คะแนนที่ให้ไปแล้ว */}
+                <View style={styles.ratingContainer}>
+                  <StarRating
+                    rating={job.requesterRating}
+                    onRatingChange={() => {}}
+                    disabled={true}
+                    size={36}
+                  />
+                </View>
+
+                {/* ความคิดเห็นที่เขียนไปแล้ว */}
+                {job.requesterReview && (
+                  <>
+                    <Text style={styles.formLabel}>ความคิดเห็น</Text>
+                    <Text style={styles.reviewText}>{job.requesterReview}</Text>
+                  </>
+                )}
+              </>
+            )}
+          </View>
+        </>
+      )}
+
+      {/* ส่วนสำหรับ requester (งานที่ยังดำเนินการอยู่) */}
+      {isRequester && job.status !== 'completed' && (
+        <>
+          {/* หัวข้อ "รายละเอียดผู้ดูแล" */}
+          <Text style={styles.sectionTitle}>รายละเอียดผู้ดูแล</Text>
+          
+          {/* กล่องแสดงรายละเอียดผู้ดูแล */}
+          <View style={styles.caregiverCard}>
+            {acceptedVolunteer ? (
+              <TouchableOpacity
+                onPress={() => navigation.navigate('Profile', { userId: acceptedVolunteer.id })}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.caregiverName}>
+                  {acceptedVolunteer.firstName} {acceptedVolunteer.lastName}
+                </Text>
+                <Text style={styles.caregiverRating}>
+                  คะแนนรีวิว: {acceptedVolunteer.rating.toFixed(1)} ⭐
+                </Text>
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity
+                onPress={() => navigation.navigate('ApplicationsList', { jobId: job.id })}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.caregiverPlaceholder}>ตรวจสอบผู้สมัครงาน</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+
+          {/* ปุ่มตามสถานะงาน */}
+          {acceptedVolunteer ? (
+            /* ถ้ามีผู้ดูแลแล้ว - แสดงปุ่ม "เสร็จสิ้นงาน" เพียงปุ่มเดียว */
+            <PrimaryButton
+              title="เสร็จสิ้นงาน"
+              onPress={async () => {
+                Alert.alert(
+                  'ยืนยันการเสร็จสิ้นงาน',
+                  'คุณต้องการให้งานนี้เสร็จสิ้นหรือไม่? หลังจากเสร็จสิ้นแล้ว คุณจะสามารถให้คะแนนผู้ดูแลได้',
+                  [
+                    { text: 'ยกเลิก', style: 'cancel' },
+                    {
+                      text: 'ยืนยัน',
+                      onPress: async () => {
+                        try {
+                          await api.completeJobByRequester(job.id);
+                          Alert.alert('งานเสร็จสิ้นแล้ว', 'คุณสามารถให้คะแนนผู้ดูแลได้', [
+                            {
+                              text: 'ตกลง',
+                              onPress: async () => {
+                                // Reload job เพื่อแสดงส่วนให้คะแนน
+                                await loadJob();
+                              },
+                            },
+                          ]);
+                        } catch (error) {
+                          Alert.alert('ไม่สามารถเสร็จสิ้นงานได้', error instanceof Error ? error.message : 'กรุณาลองใหม่อีกครั้ง');
+                        }
+                      },
+                    },
+                  ]
+                );
+              }}
+              variant="primary"
+              style={styles.singleActionButton}
+            />
+          ) : (
+            /* ถ้ายังไม่มีผู้ดูแล - แสดงปุ่ม "แก้ไขรายละเอียด" และ "ลบงาน" */
+            <View style={styles.actionButtonsRow}>
+              <PrimaryButton
+                title="แก้ไขรายละเอียด"
+                onPress={() => {
+                  navigation.navigate('EditJob', { jobId: job.id });
+                }}
+                variant="secondary"
+                style={styles.actionButton}
+              />
+              <PrimaryButton
+                title="ลบงาน"
+                onPress={async () => {
+                  Alert.alert(
+                    'ยืนยันการลบงาน',
+                    'คุณต้องการลบงานนี้หรือไม่?',
+                    [
+                      { text: 'ยกเลิก', style: 'cancel' },
+                      {
+                        text: 'ลบ',
+                        style: 'destructive',
+                        onPress: async () => {
+                          try {
+                            await api.deleteJob(job.id);
+                            Alert.alert('ลบงานเสร็จสิ้นแล้ว', 'งานถูกลบเรียบร้อยแล้ว', [
+                              {
+                                text: 'ตกลง',
+                                onPress: () => {
+                                  // พากลับไปหน้างานของฉัน (Explore tab)
+                                  navigation.dispatch(
+                                    CommonActions.reset({
+                                      index: 0,
+                                      routes: [
+                                        {
+                                          name: 'MainTabs',
+                                          state: {
+                                            routes: [{ name: 'Explore' }],
+                                            index: 0,
+                                          },
+                                        },
+                                      ],
+                                    })
+                                  );
+                                },
+                              },
+                            ]);
+                          } catch (error) {
+                            Alert.alert('ไม่สามารถลบงานได้', error instanceof Error ? error.message : 'กรุณาลองใหม่อีกครั้ง');
+                          }
+                        },
+                      },
+                    ]
+                  );
+                }}
+                variant="danger"
+                style={styles.actionButton}
+              />
+            </View>
+          )}
+        </>
+      )}
 
       {isVolunteer ? (
         <View style={[styles.section, styles.mt24]}>
           <Text style={styles.sectionTitle}>สมัครงาน</Text>
-          <Text style={styles.bodyText}>แจ้งผู้ขอความช่วยเหลือว่าคุณสามารถช่วยได้อย่างไร</Text>
-          <TextInput
-            style={[styles.textArea, styles.mt12]}
-            placeholder="ข้อความถึงผู้ขอความช่วยเหลือ"
-            placeholderTextColor={colors.muted}
-            multiline
-            numberOfLines={4}
-            value={message}
-            onChangeText={setMessage}
-          />
           <PrimaryButton title="ส่งใบสมัคร" onPress={handleApply} />
-        </View>
-      ) : null}
-
-      {isRequester ? (
-        <View style={[styles.section, styles.mt24]}>
-          <Text style={styles.sectionTitle}>ปิดงาน</Text>
-          <Text style={styles.bodyText}>
-            กรอกรหัสอาสาสมัครและให้คะแนนหลังจากได้รับความช่วยเหลือแล้ว
-          </Text>
-          <FormField
-            label="รหัสอาสาสมัคร"
-            value={volunteerId}
-            onChangeText={setVolunteerId}
-            placeholder="user-1"
-          />
-          <FormField
-            label="คะแนน (0-5)"
-            value={rating}
-            onChangeText={setRating}
-            keyboardType="decimal-pad"
-          />
-          <FormField
-            label="ความคิดเห็น"
-            value={comment}
-            onChangeText={setComment}
-            multiline
-            numberOfLines={3}
-            style={styles.textArea}
-          />
-          <PrimaryButton title="บันทึกผลการให้ความช่วยเหลือ" onPress={handleComplete} variant="secondary" />
         </View>
       ) : null}
     </ScrollView>

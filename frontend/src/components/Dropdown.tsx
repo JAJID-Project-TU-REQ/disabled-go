@@ -11,7 +11,7 @@ interface Props {
   label: string;
   options: DropdownOption[];
   value?: string;
-  onSelect: (value: string) => void;
+  onSelect?: (value: string) => void;
   placeholder?: string;
   helperText?: string;
   multiple?: boolean; // สำหรับเลือกหลายตัวเลือก
@@ -47,7 +47,7 @@ export const Dropdown: React.FC<Props> = ({
         : [...tempSelected, optionValue];
       setTempSelected(newSelected);
     } else {
-      onSelect(optionValue);
+      onSelect?.(optionValue);
       setIsVisible(false);
     }
   };

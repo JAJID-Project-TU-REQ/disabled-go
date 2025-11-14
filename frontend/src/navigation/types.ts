@@ -3,6 +3,16 @@ export type RootStackParamList = {
   Register: undefined;
   MainTabs: undefined;
   JobDetail: { jobId: string };
+  CreateJob: {
+    selectedLocation?: { latitude: number; longitude: number; address: string };
+  };
+  EditJob: {
+    jobId: string;
+  };
+  LocationPicker: undefined;
+  ApplicationsList: { jobId: string };
+  Profile: { userId?: string };
+  EditProfile: undefined;
 };
 
 export type MainTabParamList = {

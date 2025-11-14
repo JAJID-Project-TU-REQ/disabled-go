@@ -23,11 +23,16 @@ export type JobSummary = {
   id: string;
   title: string;
   requesterId: string;
-  scheduledOn: string;
+  workDate?: string; // วันที่ทำงาน (YYYY-MM-DD)
+  startTime?: string; // เวลาเริ่มงาน (ISO string หรือ HH:mm)
+  endTime?: string; // เวลาเลิกงาน (ISO string หรือ HH:mm)
   location: string;
   distanceKm: number;
-  tags: string[];
   status: string;
+  acceptedVolunteerId?: string; // ID ของอาสาสมัครที่รับงาน (สำหรับผู้พิการ)
+  acceptedVolunteerName?: string; // ชื่ออาสาสมัครที่รับงาน (สำหรับผู้พิการ)
+  requesterDisabilityType?: string; // ประเภทความพิการของผู้ลงงาน (สำหรับอาสาสมัคร)
+  applicationStatus?: string; // สถานะการสมัครงานของอาสาสมัคร (pending, accepted, rejected) - สำหรับอาสาสมัคร
 };
 
 export type JobDetail = JobSummary & {
@@ -38,6 +43,8 @@ export type JobDetail = JobSummary & {
   longitude: number;
   contactName: string;
   contactNumber: string;
+  requesterRating?: number; // คะแนนที่ requester ให้กับ volunteer (1-5)
+  requesterReview?: string; // ความคิดเห็นที่ requester เขียนเกี่ยวกับ volunteer
 };
 
 export type LoginResponse = {
@@ -49,7 +56,6 @@ export type Application = {
   id: string;
   jobId: string;
   volunteerId: string;
-  message: string;
   status: string;
   createdAt: string;
   updatedAt: string;

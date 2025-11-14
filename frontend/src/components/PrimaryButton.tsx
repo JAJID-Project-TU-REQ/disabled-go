@@ -1,5 +1,5 @@
 import React from 'react';
-import { ActivityIndicator, GestureResponderEvent, Pressable, StyleSheet, Text } from 'react-native';
+import { ActivityIndicator, GestureResponderEvent, Pressable, StyleSheet, Text, ViewStyle } from 'react-native';
 import { colors } from '../theme/colors';
 
 type Props = {
@@ -8,6 +8,7 @@ type Props = {
   disabled?: boolean;
   loading?: boolean;
   variant?: 'primary' | 'secondary' | 'danger';
+  style?: ViewStyle;
 };
 
 export const PrimaryButton: React.FC<Props> = ({
@@ -16,13 +17,14 @@ export const PrimaryButton: React.FC<Props> = ({
   disabled,
   loading,
   variant = 'primary',
+  style,
 }) => {
   const isDisabled = disabled || loading;
   return (
     <Pressable
       accessibilityRole="button"
       onPress={onPress}
-      style={({ pressed }) => [styles.base, styles[variant], pressed && !isDisabled && styles.pressed, isDisabled && styles.disabled]}
+      style={({ pressed }) => [styles.base, styles[variant], pressed && !isDisabled && styles.pressed, isDisabled && styles.disabled, style]}
       disabled={isDisabled}
     >
       {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.text}>{title}</Text>}
@@ -37,7 +39,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingVertical: 12,
     paddingHorizontal: 16,
-    marginVertical: 8,
   },
   text: {
     color: '#fff',
