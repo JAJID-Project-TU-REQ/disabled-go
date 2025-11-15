@@ -13,6 +13,7 @@ export type RootStackParamList = {
   ApplicationsList: { jobId: string };
   Profile: { userId?: string };
   EditProfile: undefined;
+  Reviews: { volunteerId: string };
 };
 
 export type MainTabParamList = {

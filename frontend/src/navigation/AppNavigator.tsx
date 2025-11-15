@@ -15,6 +15,7 @@ import { EditJobScreen } from '../screens/EditJobScreen';
 import { LocationPickerScreen } from '../screens/LocationPickerScreen';
 import { ApplicationsListScreen } from '../screens/ApplicationsListScreen';
 import { EditProfileScreen } from '../screens/EditProfileScreen';
+import { ReviewsScreen } from '../screens/ReviewsScreen';
 import { colors } from '../theme/colors';
 import { MainTabParamList, RootStackParamList } from './types';
 
@@ -110,6 +111,11 @@ export const AppNavigator = () => {
               name="EditProfile"
               component={EditProfileScreen}
               options={{ title: 'แก้ไขโปรไฟล์' }}
+            />
+            <Stack.Screen
+              name="Reviews"
+              component={ReviewsScreen}
+              options={{ title: 'ความคิดเห็นทั้งหมด' }}
             />
           </>
         ) : (

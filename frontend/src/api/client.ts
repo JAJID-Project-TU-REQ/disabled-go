@@ -185,6 +185,8 @@ let mockJobs: JobDetail[] = [
     distanceKm: 3.5,
     status: 'completed',
     acceptedVolunteerId: 'user-1', // มีคนรับแล้ว (สมชาย ใจดี)
+    requesterRating: 5, // มีการให้คะแนนแล้ว
+    requesterReview: 'คุณสมชายช่วยเหลือได้ดีมาก ใจดีและมีความอดทนสูง ขอบคุณมากค่ะ', // มีการให้ความคิดเห็นแล้ว
     description: 'ต้องการความช่วยเหลือในการพาไปธนาคารเพื่อทำธุรกรรมทางการเงิน',
     meetingPoint: 'หน้าธนาคาร',
     requirements: ['Wheelchair handling', 'Thai language'],
@@ -249,6 +251,132 @@ let mockJobs: JobDetail[] = [
     longitude: 100.5327,
     contactName: 'ประเสริฐ ต้องการความช่วยเหลือ',
     contactNumber: '083-456-7890',
+  },
+  {
+    id: 'job-8',
+    title: 'ช่วยพาไปซื้อของที่ห้างสรรพสินค้า',
+    requesterId: 'user-2',
+    workDate: '2025-01-20',
+    startTime: '14:00',
+    endTime: '17:00',
+    location: 'เซ็นทรัลเวิลด์',
+    distanceKm: 5.0,
+    status: 'completed',
+    acceptedVolunteerId: 'user-1', // user-1 รับงานนี้
+    requesterRating: 4,
+    requesterReview: 'คุณสมชายมีความเป็นมืออาชีพมาก ช่วยเหลือได้ดีมาก แต่อาจจะช้าไปนิดนึง แต่โดยรวมดีมากเลยค่ะ',
+    description: 'ต้องการความช่วยเหลือในการพาไปซื้อของที่ห้างสรรพสินค้า',
+    meetingPoint: 'หน้าห้างสรรพสินค้า',
+    requirements: ['Wheelchair handling', 'Thai language', 'Shopping assistance'],
+    latitude: 13.7473,
+    longitude: 100.5395,
+    contactName: 'สมหญิง ต้องการความช่วยเหลือ',
+    contactNumber: '082-345-6789',
+  },
+  {
+    id: 'job-9',
+    title: 'ช่วยพาไปโรงพยาบาลเพื่อตรวจสุขภาพ',
+    requesterId: 'user-2',
+    workDate: '2025-01-10',
+    startTime: '09:00',
+    endTime: '12:00',
+    location: 'โรงพยาบาลจุฬาลงกรณ์',
+    distanceKm: 2.5,
+    status: 'completed',
+    acceptedVolunteerId: 'user-1', // user-1 รับงานนี้
+    requesterRating: 5,
+    requesterReview: 'ขอบคุณคุณสมชายมากเลยค่ะ ช่วยเหลือได้ดีมาก ใจดีและมีมนุษยสัมพันธ์ดีมาก อยากให้ช่วยอีกค่ะ',
+    description: 'ต้องการอาสาสมัครช่วยพาไปโรงพยาบาลเพื่อนัดตรวจสุขภาพประจำปี',
+    meetingPoint: 'หน้าประตูหลัก',
+    requirements: ['Wheelchair handling', 'Thai language'],
+    latitude: 13.7367,
+    longitude: 100.5231,
+    contactName: 'สมหญิง ต้องการความช่วยเหลือ',
+    contactNumber: '082-345-6789',
+  },
+  {
+    id: 'job-10',
+    title: 'ช่วยพาไปเที่ยวสถานที่สำคัญ',
+    requesterId: 'user-2',
+    workDate: '2024-12-25',
+    startTime: '10:00',
+    endTime: '16:00',
+    location: 'วัดพระแก้ว',
+    distanceKm: 8.0,
+    status: 'completed',
+    acceptedVolunteerId: 'user-1', // user-1 รับงานนี้
+    requesterRating: 4,
+    requesterReview: 'คุณสมชายช่วยเหลือได้ดีมาก ช่วยอธิบายสถานที่ต่างๆ ให้ฟังได้ดี แต่อาจจะเดินเร็วไปนิดนึงสำหรับผู้ใช้รถเข็น',
+    description: 'ต้องการอาสาสมัครช่วยพาไปเที่ยวสถานที่สำคัญในกรุงเทพ',
+    meetingPoint: 'หน้าวัด',
+    requirements: ['Wheelchair handling', 'Thai language', 'Tour guide knowledge'],
+    latitude: 13.7501,
+    longitude: 100.4925,
+    contactName: 'สมหญิง ต้องการความช่วยเหลือ',
+    contactNumber: '082-345-6789',
+  },
+  {
+    id: 'job-11',
+    title: 'ช่วยพาไปซื้อของที่ตลาด',
+    requesterId: 'user-2',
+    workDate: '2024-11-15',
+    startTime: '08:00',
+    endTime: '11:00',
+    location: 'ตลาดนัดจตุจักร',
+    distanceKm: 6.0,
+    status: 'completed',
+    acceptedVolunteerId: 'user-1', // user-1 รับงานนี้
+    requesterRating: 5,
+    requesterReview: 'คุณสมชายช่วยเหลือได้ดีมากเลยค่ะ ใจดีมาก รู้จักเลือกของให้ดี อยากให้ช่วยอีกค่ะ',
+    description: 'ต้องการอาสาสมัครช่วยพาไปซื้อของที่ตลาดนัดจตุจักร',
+    meetingPoint: 'ประตูหลักตลาดนัดจตุจักร',
+    requirements: ['Wheelchair handling', 'Thai language', 'Shopping assistance'],
+    latitude: 13.7983,
+    longitude: 100.5500,
+    contactName: 'สมหญิง ต้องการความช่วยเหลือ',
+    contactNumber: '082-345-6789',
+  },
+  {
+    id: 'job-12',
+    title: 'ช่วยพาไปโรงพยาบาลเพื่อตรวจสุขภาพ',
+    requesterId: 'user-2',
+    workDate: '2024-10-20',
+    startTime: '09:00',
+    endTime: '12:00',
+    location: 'โรงพยาบาลจุฬาลงกรณ์',
+    distanceKm: 2.5,
+    status: 'completed',
+    acceptedVolunteerId: 'user-1', // user-1 รับงานนี้
+    requesterRating: 5,
+    requesterReview: 'ขอบคุณคุณสมชายมากค่ะ ช่วยเหลือได้ดีมาก ใจดีและมีความอดทนสูงมาก รู้จักช่วยเหลือดี',
+    description: 'ต้องการอาสาสมัครช่วยพาไปโรงพยาบาลเพื่อตรวจสุขภาพ',
+    meetingPoint: 'หน้าประตูหลัก',
+    requirements: ['Wheelchair handling', 'Thai language'],
+    latitude: 13.7367,
+    longitude: 100.5231,
+    contactName: 'สมหญิง ต้องการความช่วยเหลือ',
+    contactNumber: '082-345-6789',
+  },
+  {
+    id: 'job-13',
+    title: 'ช่วยพาไปธนาคารทำธุรกรรม',
+    requesterId: 'user-2',
+    workDate: '2024-09-10',
+    startTime: '10:00',
+    endTime: '11:30',
+    location: 'ธนาคารกรุงเทพ สาขาสีลม',
+    distanceKm: 3.5,
+    status: 'completed',
+    acceptedVolunteerId: 'user-1', // user-1 รับงานนี้
+    requesterRating: 4,
+    requesterReview: 'คุณสมชายช่วยเหลือได้ดี แต่อาจจะช้าไปนิดนึง แต่โดยรวมดีมากค่ะ',
+    description: 'ต้องการความช่วยเหลือในการพาไปธนาคารเพื่อทำธุรกรรม',
+    meetingPoint: 'หน้าธนาคาร',
+    requirements: ['Wheelchair handling', 'Thai language'],
+    latitude: 13.7286,
+    longitude: 100.5327,
+    contactName: 'สมหญิง ต้องการความช่วยเหลือ',
+    contactNumber: '082-345-6789',
   },
 ];
 
@@ -411,6 +539,60 @@ let mockApplications: Application[] = [
     createdAt: '2025-03-25T15:30:00Z',
     updatedAt: '2025-03-25T15:30:00Z',
   },
+  // Applications for job-8 (ช่วยพาไปซื้อของที่ห้างสรรพสินค้า) - user-1 ถูกเลือกแล้ว
+  {
+    id: 'app-10',
+    jobId: 'job-8',
+    volunteerId: 'user-1',
+    status: 'accepted', // ถูกเลือกเป็นผู้ดูแล
+    createdAt: '2025-01-15T10:00:00Z',
+    updatedAt: '2025-01-15T12:00:00Z',
+  },
+  // Applications for job-9 (ช่วยพาไปโรงพยาบาลเพื่อตรวจสุขภาพ) - user-1 ถูกเลือกแล้ว
+  {
+    id: 'app-11',
+    jobId: 'job-9',
+    volunteerId: 'user-1',
+    status: 'accepted', // ถูกเลือกเป็นผู้ดูแล
+    createdAt: '2025-01-05T10:00:00Z',
+    updatedAt: '2025-01-05T12:00:00Z',
+  },
+  // Applications for job-10 (ช่วยพาไปเที่ยวสถานที่สำคัญ) - user-1 ถูกเลือกแล้ว
+  {
+    id: 'app-12',
+    jobId: 'job-10',
+    volunteerId: 'user-1',
+    status: 'accepted', // ถูกเลือกเป็นผู้ดูแล
+    createdAt: '2024-12-20T10:00:00Z',
+    updatedAt: '2024-12-20T12:00:00Z',
+  },
+  // Applications for job-11 (ช่วยพาไปซื้อของที่ตลาด) - user-1 ถูกเลือกแล้ว
+  {
+    id: 'app-13',
+    jobId: 'job-11',
+    volunteerId: 'user-1',
+    status: 'accepted', // ถูกเลือกเป็นผู้ดูแล
+    createdAt: '2024-11-10T10:00:00Z',
+    updatedAt: '2024-11-10T12:00:00Z',
+  },
+  // Applications for job-12 (ช่วยพาไปโรงพยาบาลเพื่อตรวจสุขภาพ) - user-1 ถูกเลือกแล้ว
+  {
+    id: 'app-14',
+    jobId: 'job-12',
+    volunteerId: 'user-1',
+    status: 'accepted', // ถูกเลือกเป็นผู้ดูแล
+    createdAt: '2024-10-15T10:00:00Z',
+    updatedAt: '2024-10-15T12:00:00Z',
+  },
+  // Applications for job-13 (ช่วยพาไปธนาคารทำธุรกรรม) - user-1 ถูกเลือกแล้ว
+  {
+    id: 'app-15',
+    jobId: 'job-13',
+    volunteerId: 'user-1',
+    status: 'accepted', // ถูกเลือกเป็นผู้ดูแล
+    createdAt: '2024-09-05T10:00:00Z',
+    updatedAt: '2024-09-05T12:00:00Z',
+  },
 ];
 
 // Helper function to simulate API delay
@@ -484,6 +666,29 @@ export const api = {
     return userWithoutPassword;
   },
 
+  getVolunteerReviews: async (volunteerId: string): Promise<Array<{ jobTitle: string; rating: number; review: string; requesterName: string; createdAt: string }>> => {
+    await delay();
+    // หา jobs ที่ volunteer นี้เป็น acceptedVolunteerId และมี requesterReview
+    const reviewedJobs = mockJobs.filter(
+      (job) => job.acceptedVolunteerId === volunteerId && job.requesterReview && job.status === 'completed'
+    );
+    
+    return reviewedJobs.map((job) => {
+      const requester = mockUsers.find((u) => u.id === job.requesterId);
+      // หา application เพื่อดึง createdAt
+      const application = mockApplications.find(
+        (app) => app.jobId === job.id && app.volunteerId === volunteerId && app.status === 'accepted'
+      );
+      return {
+        jobTitle: job.title,
+        rating: job.requesterRating || 0,
+        review: job.requesterReview || '',
+        requesterName: requester ? `${requester.firstName} ${requester.lastName}` : 'ไม่ทราบชื่อ',
+        createdAt: application?.updatedAt || new Date().toISOString(),
+      };
+    });
+  },
+
   updateUser: async (id: string, payload: Partial<UserProfile>): Promise<UserProfile> => {
     await delay();
     const userIndex = mockUsers.findIndex((u) => u.id === id);
@@ -550,13 +755,29 @@ export const api = {
     return { jobs };
   },
 
-  getJob: async (id: string): Promise<JobDetail> => {
+  getJob: async (id: string, volunteerId?: string): Promise<JobDetail> => {
     await delay();
     const job = mockJobs.find((j) => j.id === id);
     if (!job) {
       throw new Error('ไม่พบงาน');
     }
-    return { ...job };
+    
+    // เช็ค application status สำหรับอาสาสมัคร
+    let applicationStatus: string | undefined;
+    if (volunteerId) {
+      const application = mockApplications.find(
+        (a) => a.jobId === job.id && a.volunteerId === volunteerId
+      );
+      applicationStatus = application?.status;
+    }
+    
+    const requester = mockUsers.find((u) => u.id === job.requesterId);
+    
+    return {
+      ...job,
+      applicationStatus,
+      requesterDisabilityType: requester?.disabilityType,
+    };
   },
 
   submitRating: async (jobId: string, payload: { rating: number; review: string }): Promise<void> => {
@@ -628,6 +849,15 @@ export const api = {
 
   applyToJob: async (jobId: string, payload: { volunteerId: string }): Promise<{ id: string }> => {
     await delay();
+    
+    // ตรวจสอบว่ามี application อยู่แล้วหรือไม่
+    const existingApp = mockApplications.find(
+      (a) => a.jobId === jobId && a.volunteerId === payload.volunteerId
+    );
+    if (existingApp) {
+      throw new Error('คุณได้สมัครงานนี้แล้ว');
+    }
+    
     const newApplication: Application = {
       id: `app-${mockApplications.length + 1}`,
       jobId,
@@ -638,6 +868,25 @@ export const api = {
     };
     mockApplications.push(newApplication);
     return { id: newApplication.id };
+  },
+
+  cancelApplication: async (jobId: string, volunteerId: string): Promise<void> => {
+    await delay();
+    const applicationIndex = mockApplications.findIndex(
+      (a) => a.jobId === jobId && a.volunteerId === volunteerId
+    );
+    
+    if (applicationIndex === -1) {
+      throw new Error('ไม่พบใบสมัคร');
+    }
+    
+    const application = mockApplications[applicationIndex];
+    if (application.status !== 'pending') {
+      throw new Error('ไม่สามารถยกเลิกใบสมัครที่ได้รับการยืนยันหรือถูกปฏิเสธแล้ว');
+    }
+    
+    // ลบ application
+    mockApplications.splice(applicationIndex, 1);
   },
 
   completeJob: async (jobId: string, payload: { volunteerId: string; rating: number; comment: string }): Promise<void> => {
@@ -713,15 +962,21 @@ export const api = {
       if (!job) {
         throw new Error('ไม่พบงาน');
       }
+      const requester = mockUsers.find((u) => u.id === job.requesterId);
       return {
         application: app,
         job: {
           id: job.id,
           title: job.title,
           requesterId: job.requesterId,
+          workDate: job.workDate,
+          startTime: job.startTime,
+          endTime: job.endTime,
           location: job.location,
           distanceKm: job.distanceKm,
           status: job.status,
+          acceptedVolunteerId: job.acceptedVolunteerId,
+          requesterDisabilityType: requester?.disabilityType,
         },
       };
     });

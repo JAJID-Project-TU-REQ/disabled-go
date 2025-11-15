@@ -31,9 +31,16 @@ export const JobListScreen: React.FC = () => {
         const activeJobs = response.jobs.filter((job) => job.status === 'open' || job.status === 'in_progress');
         setJobs(activeJobs);
       } else {
-        // สำหรับอาสาสมัคร: แสดงงานทั้งหมด พร้อม application status
+        // สำหรับอาสาสมัคร: แสดงเฉพาะงานที่ยังเปิดรับ (status === 'open' และยังไม่มี acceptedVolunteerId)
+        // และยังไม่ได้สมัคร (applicationStatus ไม่มี หรือ undefined)
         const response = await api.getJobs(user?.id);
-        setJobs(response.jobs);
+        const openJobs = response.jobs.filter(
+          (job) => 
+            job.status === 'open' && 
+            !job.acceptedVolunteerId &&
+            !job.applicationStatus // ยังไม่ได้สมัคร
+        );
+        setJobs(openJobs);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'ไม่สามารถโหลดงานได้');

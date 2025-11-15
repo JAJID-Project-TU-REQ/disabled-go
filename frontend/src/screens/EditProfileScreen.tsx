@@ -68,7 +68,6 @@ export const EditProfileScreen: React.FC<Props> = ({ navigation }) => {
   const [nationalId, setNationalId] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
-  const [address, setAddress] = useState('');
   
   // Volunteer fields
   const [skills, setSkills] = useState<string[]>([]);
@@ -87,7 +86,6 @@ export const EditProfileScreen: React.FC<Props> = ({ navigation }) => {
         setNationalId(user.nationalId);
         setPhone(user.phone);
         setEmail(user.email || '');
-        setAddress(user.address || '');
         setSkills(user.skills || []);
         setBiography(user.biography || '');
         setDisabilityType(user.disabilityType || '');
@@ -126,7 +124,6 @@ export const EditProfileScreen: React.FC<Props> = ({ navigation }) => {
         nationalId: nationalId.trim(),
         phone: phone.trim(),
         email: email.trim() || undefined,
-        address: address.trim() || undefined,
         skills: user.role === 'volunteer' ? skills : [],
         biography: user.role === 'volunteer' ? biography : '',
         disabilityType: user.role === 'requester' ? disabilityType : undefined,
@@ -202,14 +199,6 @@ export const EditProfileScreen: React.FC<Props> = ({ navigation }) => {
           keyboardType="email-address"
           placeholder="example@email.com"
           autoCapitalize="none"
-        />
-        <FormField
-          label="ที่อยู่ (ไม่บังคับ)"
-          value={address}
-          onChangeText={setAddress}
-          multiline
-          numberOfLines={3}
-          placeholder="ที่อยู่ของคุณ"
         />
 
         {user.role === 'volunteer' ? (

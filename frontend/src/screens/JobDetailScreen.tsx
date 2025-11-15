@@ -25,6 +25,21 @@ import { getDynamicTopPadding, styles } from './styles';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'JobDetail'>;
 
+// Map disability type เป็นภาษาไทย
+const getDisabilityTypeLabel = (type?: string): string => {
+  const map: Record<string, string> = {
+    'physical': 'ผู้พิการทางร่างกาย',
+    'visual': 'ผู้พิการทางสายตา',
+    'hearing': 'ผู้พิการทางการได้ยิน',
+    'intellectual': 'ผู้พิการทางสติปัญญา',
+    'mental': 'ผู้พิการทางจิตใจ',
+    'elderly': 'ผู้สูงวัย',
+    'learning': 'ความพิการทางการเรียนรู้',
+    'other': 'อื่นๆ',
+  };
+  return type ? (map[type] || type) : '';
+};
+
 export const JobDetailScreen: React.FC<Props> = ({ route, navigation }) => {
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
@@ -38,7 +53,7 @@ export const JobDetailScreen: React.FC<Props> = ({ route, navigation }) => {
   const loadJob = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await api.getJob(route.params.jobId);
+      const response = await api.getJob(route.params.jobId, user?.role === 'volunteer' ? user.id : undefined);
       setJob(response);
       
       // โหลดข้อมูลผู้ดูแลถ้ามี
@@ -57,7 +72,7 @@ export const JobDetailScreen: React.FC<Props> = ({ route, navigation }) => {
     } finally {
       setLoading(false);
     }
-  }, [route.params.jobId]);
+  }, [route.params.jobId, user?.id, user?.role]);
 
   useFocusEffect(
     useCallback(() => {
@@ -67,14 +82,100 @@ export const JobDetailScreen: React.FC<Props> = ({ route, navigation }) => {
 
   const handleApply = async () => {
     if (!user) return;
-    try {
-      await api.applyToJob(route.params.jobId, {
-        volunteerId: user.id,
-      });
-      Alert.alert('ส่งใบสมัครแล้ว', 'ผู้ขอความช่วยเหลือได้รับแจ้งเตือนแล้ว');
-    } catch (error) {
-      Alert.alert('ไม่สามารถสมัครได้', error instanceof Error ? error.message : 'กรุณาลองใหม่อีกครั้ง');
-    }
+    
+    Alert.alert(
+      'ยืนยันการสมัครงาน',
+      'คุณต้องการสมัครงานนี้หรือไม่?',
+      [
+        { text: 'ยกเลิก', style: 'cancel' },
+        {
+          text: 'ยืนยัน',
+          onPress: async () => {
+            try {
+              await api.applyToJob(route.params.jobId, {
+                volunteerId: user.id,
+              });
+              Alert.alert('สมัครงานเสร็จสิ้น', 'คุณได้สมัครงานนี้เรียบร้อยแล้ว', [
+                {
+                  text: 'ตกลง',
+                  onPress: () => {
+                    // พากลับไปหน้า "ใบสมัครของฉัน" (MyJobs tab)
+                    navigation.dispatch(
+                      CommonActions.reset({
+                        index: 0,
+                        routes: [
+                          {
+                            name: 'MainTabs',
+                            state: {
+                              routes: [
+                                { name: 'Explore' },
+                                { name: 'MyJobs' },
+                                { name: 'Profile' },
+                              ],
+                              index: 1, // MyJobs tab
+                            },
+                          },
+                        ],
+                      })
+                    );
+                  },
+                },
+              ]);
+            } catch (error) {
+              Alert.alert('ไม่สามารถสมัครได้', error instanceof Error ? error.message : 'กรุณาลองใหม่อีกครั้ง');
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const handleCancelApplication = async () => {
+    if (!user) return;
+    
+    Alert.alert(
+      'ยืนยันการยกเลิกสมัครงาน',
+      'คุณต้องการยกเลิกการสมัครงานนี้หรือไม่?',
+      [
+        { text: 'ยกเลิก', style: 'cancel' },
+        {
+          text: 'ยืนยัน',
+          onPress: async () => {
+            try {
+              await api.cancelApplication(route.params.jobId, user.id);
+              Alert.alert('ยกเลิกสมัครงานเรียบร้อย', 'คุณได้ยกเลิกการสมัครงานนี้แล้ว', [
+                {
+                  text: 'ตกลง',
+                  onPress: () => {
+                    // พากลับไปหน้า "ใบสมัครของฉัน" (MyJobs tab)
+                    navigation.dispatch(
+                      CommonActions.reset({
+                        index: 0,
+                        routes: [
+                          {
+                            name: 'MainTabs',
+                            state: {
+                              routes: [
+                                { name: 'Explore' },
+                                { name: 'MyJobs' },
+                                { name: 'Profile' },
+                              ],
+                              index: 1, // MyJobs tab
+                            },
+                          },
+                        ],
+                      })
+                    );
+                  },
+                },
+              ]);
+            } catch (error) {
+              Alert.alert('ไม่สามารถยกเลิกได้', error instanceof Error ? error.message : 'กรุณาลองใหม่อีกครั้ง');
+            }
+          },
+        },
+      ]
+    );
   };
 
 
@@ -160,6 +261,14 @@ export const JobDetailScreen: React.FC<Props> = ({ route, navigation }) => {
         <Text style={styles.detailText}>{formatTimeRange()}</Text>
       </View>
 
+      {/* ประเภทความพิการ (สำหรับอาสาสมัคร) */}
+      {isVolunteer && job.requesterDisabilityType && (
+        <View style={styles.detailRow}>
+          <Ionicons name="person-outline" size={20} color={colors.muted} style={styles.detailIcon} />
+          <Text style={styles.detailText}>{getDisabilityTypeLabel(job.requesterDisabilityType)}</Text>
+        </View>
+      )}
+
       {/* สถานที่ */}
       <View style={styles.detailRow}>
         <Ionicons name="location-outline" size={20} color={colors.muted} style={styles.detailIcon} />
@@ -191,6 +300,32 @@ export const JobDetailScreen: React.FC<Props> = ({ route, navigation }) => {
       {/* หัวข้อ "รายละเอียดเพิ่มเติม" */}
       <Text style={styles.sectionTitle}>รายละเอียดเพิ่มเติม</Text>
       <Text style={styles.bodyText}>{job.description || 'ไม่มีรายละเอียดเพิ่มเติม'}</Text>
+
+      {/* ส่วนสำหรับ volunteer */}
+      {isVolunteer && (
+        <>
+          {/* ปุ่มสมัครงาน - แสดงเฉพาะงานที่ยังไม่ได้สมัคร */}
+          {!job.applicationStatus && (
+            <PrimaryButton
+              title="สมัครงาน"
+              onPress={handleApply}
+              style={{ marginTop: 24 }}
+            />
+          )}
+
+          {/* ปุ่มยกเลิกสมัครงาน - แสดงเฉพาะงานที่มี status pending */}
+          {job.applicationStatus === 'pending' && (
+            <PrimaryButton
+              title="ยกเลิกสมัครงาน"
+              onPress={handleCancelApplication}
+              variant="danger"
+              style={{ marginTop: 24 }}
+            />
+          )}
+
+          {/* สำหรับงานที่มี status accepted หรือ rejected - ไม่แสดงปุ่มอะไร */}
+        </>
+      )}
 
       {/* ส่วนสำหรับ requester (งานที่เสร็จสิ้นแล้ว) - ให้คะแนนผู้ดูแล */}
       {isRequester && job.status === 'completed' && acceptedVolunteer && (
@@ -412,12 +547,6 @@ export const JobDetailScreen: React.FC<Props> = ({ route, navigation }) => {
         </>
       )}
 
-      {isVolunteer ? (
-        <View style={[styles.section, styles.mt24]}>
-          <Text style={styles.sectionTitle}>สมัครงาน</Text>
-          <PrimaryButton title="ส่งใบสมัคร" onPress={handleApply} />
-        </View>
-      ) : null}
     </ScrollView>
   );
 };

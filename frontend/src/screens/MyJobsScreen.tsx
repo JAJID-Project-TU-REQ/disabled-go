@@ -3,18 +3,21 @@ import {
   Alert,
   FlatList,
   RefreshControl,
+  ScrollView,
   Text,
+  TouchableOpacity,
   View,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import { api } from '../api/client';
 import { JobCard } from '../components/JobCard';
-import { PrimaryButton } from '../components/PrimaryButton';
 import { useAuth } from '../context/AuthContext';
 import { JobSummary, VolunteerApplication } from '../types';
 import { RootStackParamList } from '../navigation/types';
+import { colors } from '../theme/colors';
 import { getDynamicTopPadding, styles } from './styles';
 
 export const MyJobsScreen: React.FC = () => {
@@ -25,6 +28,11 @@ export const MyJobsScreen: React.FC = () => {
   const [jobs, setJobs] = useState<JobSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  
+  // Collapse/expand state สำหรับ volunteer
+  const [acceptedExpanded, setAcceptedExpanded] = useState(true);
+  const [pendingExpanded, setPendingExpanded] = useState(true);
+  const [rejectedExpanded, setRejectedExpanded] = useState(false); // เริ่มต้นย่อไว้
 
   const loadData = useCallback(async () => {
     if (!user) return;
@@ -61,28 +69,77 @@ export const MyJobsScreen: React.FC = () => {
   }
 
   if (user.role === 'volunteer') {
+    // แปลง applications เป็น jobs พร้อม applicationStatus
+    const jobsWithStatus: JobSummary[] = applications.map((app) => ({
+      ...app.job,
+      applicationStatus: app.application.status,
+    }));
+
+    // แบ่งตาม status
+    const acceptedJobs = jobsWithStatus.filter((job) => job.applicationStatus === 'accepted');
+    const pendingJobs = jobsWithStatus.filter((job) => job.applicationStatus === 'pending');
+    const rejectedJobs = jobsWithStatus.filter((job) => job.applicationStatus === 'rejected');
+
+    const renderSection = (
+      title: string,
+      jobs: JobSummary[],
+      expanded: boolean,
+      onToggle: () => void
+    ) => (
+      <View style={{ marginBottom: 16 }}>
+        <TouchableOpacity
+          onPress={onToggle}
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            paddingVertical: 12,
+            paddingHorizontal: 4,
+          }}
+          activeOpacity={0.7}
+        >
+          <Text style={[styles.heading, { fontSize: 18, marginBottom: 0 }]}>{title}</Text>
+          <Ionicons
+            name={expanded ? 'chevron-down' : 'chevron-forward'}
+            size={20}
+            color={colors.text}
+          />
+        </TouchableOpacity>
+        {expanded && (
+          <>
+            {jobs.length === 0 ? (
+              <Text style={[styles.empty, { marginTop: 8 }]}>ไม่พบงาน</Text>
+            ) : (
+              jobs.map((job) => (
+                <JobCard
+                  key={job.id}
+                  job={job}
+                  onPress={() => navigation.navigate('JobDetail', { jobId: job.id })}
+                />
+              ))
+            )}
+          </>
+        )}
+      </View>
+    );
+
     return (
       <View style={[styles.screen, styles.padHorizontal16, getDynamicTopPadding(insets.top)]}>
         <Text style={styles.heading}>ใบสมัครของฉัน</Text>
-        <FlatList
-          data={applications}
-          keyExtractor={(item) => item.application.id}
+        <ScrollView
           contentContainerStyle={styles.listContent}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
-          ListEmptyComponent={!loading ? <Text style={styles.empty}>ยังไม่มีใบสมัคร</Text> : null}
-          renderItem={({ item }) => (
-            <View style={[styles.section, styles.mb12]}>
-              <Text style={styles.cardTitle}>{item.job.title}</Text>
-              <Text style={styles.metaCompact}>สถานะ: {item.application.status === 'pending' ? 'รอดำเนินการ' : item.application.status === 'completed' ? 'เสร็จสิ้น' : item.application.status}</Text>
-              <Text style={styles.metaCompact}>ส่งเมื่อ {new Date(item.application.createdAt).toLocaleDateString('th-TH')}</Text>
-              <PrimaryButton
-                title="ดูรายละเอียด"
-                onPress={() => navigation.navigate('JobDetail', { jobId: item.job.id })}
-                variant="secondary"
-              />
-            </View>
+        >
+          {renderSection('ยืนยันแล้ว', acceptedJobs, acceptedExpanded, () =>
+            setAcceptedExpanded(!acceptedExpanded)
           )}
-        />
+          {renderSection('รอดำเนินการ', pendingJobs, pendingExpanded, () =>
+            setPendingExpanded(!pendingExpanded)
+          )}
+          {renderSection('ไม่ผ่าน', rejectedJobs, rejectedExpanded, () =>
+            setRejectedExpanded(!rejectedExpanded)
+          )}
+        </ScrollView>
       </View>
     );
   }

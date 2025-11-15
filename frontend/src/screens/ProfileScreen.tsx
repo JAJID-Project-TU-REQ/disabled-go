@@ -4,9 +4,11 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, ScrollView, Text, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api } from '../api/client';
 import { PrimaryButton } from '../components/PrimaryButton';
+import { StarRating } from '../components/StarRating';
 import { useAuth } from '../context/AuthContext';
 import { MainTabParamList, RootStackParamList } from '../navigation/types';
 import { UserProfile } from '../types';
@@ -28,6 +30,9 @@ export const ProfileScreen: React.FC<Props> = (props) => {
   const { user: currentUser, refreshProfile, logout, isLoading } = useAuth();
   const [viewingUser, setViewingUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(false);
+  const [reviews, setReviews] = useState<Array<{ jobTitle: string; rating: number; review: string; requesterName: string; createdAt: string }>>([]);
+  const [loadingReviews, setLoadingReviews] = useState(false);
+  const [showMoreReviews, setShowMoreReviews] = useState(false);
 
   // ถ้ามี userId ใน params แสดงว่าเป็นการดู profile ของคนอื่น
   const userId = route.params?.userId;
@@ -40,6 +45,12 @@ export const ProfileScreen: React.FC<Props> = (props) => {
     }
   }, [userId, isViewingOther]);
 
+  useEffect(() => {
+    if (user && user.role === 'volunteer') {
+      loadReviews(user.id);
+    }
+  }, [user]);
+
   const loadUserProfile = async (id: string) => {
     setLoading(true);
     try {
@@ -49,6 +60,18 @@ export const ProfileScreen: React.FC<Props> = (props) => {
       // Handle error
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadReviews = async (volunteerId: string) => {
+    setLoadingReviews(true);
+    try {
+      const reviewsData = await api.getVolunteerReviews(volunteerId);
+      setReviews(reviewsData);
+    } catch (error) {
+      // Handle error silently
+    } finally {
+      setLoadingReviews(false);
     }
   };
 
@@ -117,23 +140,71 @@ export const ProfileScreen: React.FC<Props> = (props) => {
         <Text style={[styles.roleLabel, styles.mb12]}>
           {user.role === 'volunteer' ? 'อาสาสมัคร' : 'ผู้พิการ'}
         </Text>
-        <Text style={styles.metaCompact}>เลขบัตรประชาชน: {user.nationalId}</Text>
-        <Text style={styles.metaCompact}>เบอร์โทรศัพท์: {user.phone}</Text>
         {user.email && <Text style={styles.metaCompact}>อีเมล: {user.email}</Text>}
-        {user.address && <Text style={styles.metaCompact}>ที่อยู่: {user.address}</Text>}
+        <Text style={styles.metaCompact}>เบอร์โทรศัพท์: {user.phone}</Text>
 
         {user.role === 'volunteer' ? (
           <>
+            {!!user.skills?.length && (
+              <>
+                <Text style={styles.sectionTitle}>ทักษะ</Text>
+                <Text style={styles.bodyText}>
+                  {user.skills.map(getSkillLabel).join(', ')}
+                </Text>
+              </>
+            )}
+            
             <Text style={styles.sectionTitle}>เกี่ยวกับ</Text>
             <Text style={styles.bodyText}>{user.biography || 'ยังไม่มีข้อมูลเกี่ยวกับคุณ'}</Text>
             
-            <Text style={styles.sectionTitle}>ผลงาน</Text>
-            <Text style={styles.bodyText}>งานที่ทำเสร็จ: {user.completedJobs}</Text>
-            <Text style={styles.bodyText}>คะแนน: {user.rating.toFixed(1)}</Text>
-            {!!user.skills?.length && (
-              <Text style={styles.bodyText}>
-                ทักษะ: {user.skills.map(getSkillLabel).join(', ')}
-              </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16 }}>
+              <Text style={styles.sectionTitle}>คะแนนรีวิวรวม : </Text>
+              <Ionicons name="star" size={18} color="#FFD700" />
+              <Text style={[styles.sectionTitle, { marginLeft: 4 }]}>{user.rating.toFixed(1)}</Text>
+            </View>
+            
+            {reviews.length > 0 && (
+              <>
+                {(showMoreReviews ? reviews.slice(0, 5) : reviews.slice(0, 2)).map((review, index) => {
+                  const displayedReviews = showMoreReviews ? reviews.slice(0, 5) : reviews.slice(0, 2);
+                  const isLastItem = index === displayedReviews.length - 1;
+                  // แสดง border ถ้าไม่ใช่ item สุดท้าย หรือ ถ้าเป็น item สุดท้ายแต่มีปุ่มต่อไป (ดูเพิ่มเติม หรือ ดูทั้งหมด)
+                  const shouldShowBorder = !isLastItem || (showMoreReviews && reviews.length > 5) || (!showMoreReviews && reviews.length > 2);
+                  return (
+                    <View key={index} style={{ marginBottom: 16, paddingBottom: 16, borderBottomWidth: shouldShowBorder ? 1 : 0, borderBottomColor: colors.border }}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+                        <Text style={[styles.bodyText, { fontWeight: '600', flex: 1 }]}>{review.jobTitle}</Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', marginRight: 8 }}>
+                          <StarRating
+                            rating={review.rating}
+                            onRatingChange={() => {}}
+                            disabled={true}
+                            size={16}
+                          />
+                        </View>
+                      </View>
+                      <Text style={[styles.metaCompact, { marginBottom: 4 }]}>จาก: {review.requesterName}</Text>
+                      <Text style={styles.bodyText}>{review.review}</Text>
+                    </View>
+                  );
+                })}
+                {reviews.length > 2 && !showMoreReviews && (
+                  <PrimaryButton
+                    title="ดูเพิ่มเติม"
+                    onPress={() => setShowMoreReviews(true)}
+                    variant="secondary"
+                    style={{ marginTop: 8, marginBottom: 8 }}
+                  />
+                )}
+                {reviews.length > 5 && showMoreReviews && (
+                  <PrimaryButton
+                    title="ดูทั้งหมด"
+                    onPress={() => stackNavigation.navigate('Reviews', { volunteerId: user.id })}
+                    variant="secondary"
+                    style={{ marginTop: 8, marginBottom: 8 }}
+                  />
+                )}
+              </>
             )}
           </>
         ) : (

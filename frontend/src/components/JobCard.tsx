@@ -86,7 +86,7 @@ export const JobCard: React.FC<Props> = ({ job, onPress }) => {
   const getApplicationStatusLabel = (status: string): string => {
     const statusMap: Record<string, string> = {
       'pending': 'รอดำเนินการ',
-      'accepted': 'รับแล้ว',
+      'accepted': 'ยืนยันแล้ว',
       'rejected': 'ไม่ผ่าน',
     };
     return statusMap[status] || status;
