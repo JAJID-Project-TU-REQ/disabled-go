@@ -48,6 +48,8 @@ export function AuthProvider({ children }: PropsWithChildren) {
     try {
       await api.register({ ...payload });
       await login(payload.nationalId, payload.password);
+    } catch (error) {
+      throw error; // Re-throw error so RegisterScreen can handle it
     } finally {
       setIsLoading(false);
     }
