@@ -379,6 +379,9 @@ export const JobDetailScreen: React.FC<Props> = ({ route, navigation }) => {
                         rating,
                         review: review.trim(),
                       });
+                      // Reset state
+                      setRating(0);
+                      setReview('');
                       // Reload job เพื่อแสดงข้อมูลที่อัปเดต
                       await loadJob();
                       Alert.alert('ให้คะแนนเรียบร้อย', 'ขอบคุณสำหรับการให้คะแนน');
@@ -463,7 +466,10 @@ export const JobDetailScreen: React.FC<Props> = ({ route, navigation }) => {
                       text: 'ยืนยัน',
                       onPress: async () => {
                         try {
-                          await api.completeJobByRequester(job.id);
+                          if (!job.acceptedVolunteerId) {
+                            throw new Error('งานนี้ยังไม่มีผู้ดูแล');
+                          }
+                          await api.completeJobByRequester(job.id, job.acceptedVolunteerId);
                           Alert.alert('งานเสร็จสิ้นแล้ว', 'คุณสามารถให้คะแนนผู้ดูแลได้', [
                             {
                               text: 'ตกลง',

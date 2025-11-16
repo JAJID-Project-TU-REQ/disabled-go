@@ -1,6 +1,6 @@
 import { Application, JobDetail, JobSummary, LoginResponse, UserProfile, VolunteerApplication } from '../types';
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:8080/api';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? 'https://3cc8125a57a0.ngrok-free.app/api';
 
 // Internal type for mock users (includes password that we don't expose)
 type MockUser = UserProfile & { password: string };
@@ -600,17 +600,34 @@ const delay = (ms: number = 500) => new Promise((resolve) => setTimeout(resolve,
 
 export const api = {
   login: async (nationalId: string, password: string): Promise<LoginResponse> => {
-    await delay();
-    const user = mockUsers.find((u) => u.nationalId === nationalId);
-    if (!user || user.password !== password) {
-      throw new Error('เลขบัตรประชาชนหรือรหัสผ่านไม่ถูกต้อง');
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          nationalId,
+          password,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'เข้าสู่ระบบไม่สำเร็จ');
+      }
+
+      const data = await response.json();
+      return {
+        token: data.token,
+        user: data.user,
+      };
+    } catch (error) {
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error('เกิดข้อผิดพลาดในการเชื่อมต่อ');
     }
-    // Remove password before returning (don't expose password in response)
-    const { password: _, ...userWithoutPassword } = user;
-    return {
-      token: `mock-token-${user.id}`,
-      user: userWithoutPassword,
-    };
   },
 
   register: async (payload: Partial<UserProfile> & { 
@@ -625,189 +642,161 @@ export const api = {
     disabilityType?: string;
     additionalNeeds?: string[];
   }): Promise<UserProfile> => {
-    await delay();
-    
-    // Check if nationalId already exists
-    if (mockUsers.some((u) => u.nationalId === payload.nationalId)) {
-      throw new Error('เลขบัตรประชาชนนี้ถูกใช้งานแล้ว');
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          role: payload.role,
+          firstName: payload.firstName,
+          lastName: payload.lastName,
+          nationalId: payload.nationalId,
+          phone: payload.phone,
+          email: payload.email,
+          password: payload.password,
+          skills: payload.skills || [],
+          biography: payload.biography || '',
+          disabilityType: payload.disabilityType,
+          additionalNeeds: payload.additionalNeeds || [],
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'สมัครสมาชิกไม่สำเร็จ');
+      }
+
+      const user = await response.json();
+      return user as UserProfile;
+    } catch (error) {
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error('เกิดข้อผิดพลาดในการเชื่อมต่อ');
     }
-    
-    const newUser: MockUser = {
-      id: `user-${mockUsers.length + 1}`,
-      role: payload.role,
-      firstName: payload.firstName || '',
-      lastName: payload.lastName || '',
-      nationalId: payload.nationalId || '',
-      phone: payload.phone || '',
-      skills: payload.skills || [],
-      biography: payload.biography || '',
-      disabilityType: payload.disabilityType,
-      additionalNeeds: payload.additionalNeeds || [],
-      interests: [], // เก็บไว้สำหรับ backward compatibility
-      rating: 0,
-      completedJobs: 0,
-      createdAt: new Date().toISOString(),
-      password: payload.password || '',
-    };
-    mockUsers.push(newUser);
-    
-    // Remove password before returning (don't expose password in response)
-    const { password: _, ...userWithoutPassword } = newUser;
-    return userWithoutPassword;
   },
 
   getUser: async (id: string): Promise<UserProfile> => {
-    await delay();
-    const user = mockUsers.find((u) => u.id === id);
-    if (!user) {
-      throw new Error('ไม่พบผู้ใช้');
+    const response = await fetch(`${API_BASE_URL}/users/${encodeURIComponent(id)}`);
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || 'ไม่พบผู้ใช้');
     }
-    const { password: _, ...userWithoutPassword } = user;
-    return userWithoutPassword;
+    const user = await response.json();
+    return user as UserProfile;
   },
 
   getVolunteerReviews: async (volunteerId: string): Promise<Array<{ jobTitle: string; rating: number; review: string; requesterName: string; createdAt: string }>> => {
-    await delay();
-    // หา jobs ที่ volunteer นี้เป็น acceptedVolunteerId และมี requesterReview
-    const reviewedJobs = mockJobs.filter(
-      (job) => job.acceptedVolunteerId === volunteerId && job.requesterReview && job.status === 'completed'
-    );
-    
-    return reviewedJobs.map((job) => {
-      const requester = mockUsers.find((u) => u.id === job.requesterId);
-      // หา application เพื่อดึง createdAt
-      const application = mockApplications.find(
-        (app) => app.jobId === job.id && app.volunteerId === volunteerId && app.status === 'accepted'
-      );
-      return {
-        jobTitle: job.title,
-        rating: job.requesterRating || 0,
-        review: job.requesterReview || '',
-        requesterName: requester ? `${requester.firstName} ${requester.lastName}` : 'ไม่ทราบชื่อ',
-        createdAt: application?.updatedAt || new Date().toISOString(),
-      };
-    });
+    const response = await fetch(`${API_BASE_URL}/volunteers/${encodeURIComponent(volunteerId)}/reviews`);
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || 'ไม่สามารถดึงรีวิวได้');
+    }
+    const items = await response.json();
+    return (items as any[]).map((it) => ({
+      jobTitle: it.jobTitle,
+      rating: it.rating ?? 0,
+      review: it.review ?? '',
+      requesterName: it.requesterName ?? '',
+      createdAt: typeof it.createdAt === 'string' ? it.createdAt : new Date(it.createdAt).toISOString(),
+    }));
   },
 
   updateUser: async (id: string, payload: Partial<UserProfile>): Promise<UserProfile> => {
-    await delay();
-    const userIndex = mockUsers.findIndex((u) => u.id === id);
-    if (userIndex === -1) {
-      throw new Error('ไม่พบผู้ใช้');
+    const response = await fetch(`${API_BASE_URL}/users/${encodeURIComponent(id)}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || 'อัปเดตผู้ใช้ไม่สำเร็จ');
     }
-    
-    const user = mockUsers[userIndex];
-    
-    // Update user fields
-    if (payload.firstName !== undefined) user.firstName = payload.firstName;
-    if (payload.lastName !== undefined) user.lastName = payload.lastName;
-    if (payload.phone !== undefined) user.phone = payload.phone;
-    if (payload.email !== undefined) user.email = payload.email;
-    if (payload.address !== undefined) user.address = payload.address;
-    
-    if (user.role === 'volunteer') {
-      if (payload.skills !== undefined) user.skills = payload.skills;
-      if (payload.biography !== undefined) user.biography = payload.biography;
-    } else if (user.role === 'requester') {
-      if (payload.disabilityType !== undefined) user.disabilityType = payload.disabilityType;
-      if (payload.additionalNeeds !== undefined) user.additionalNeeds = payload.additionalNeeds;
-    }
-    
-    mockUsers[userIndex] = user;
-    
-    // Remove password before returning
-    const { password: _, ...userWithoutPassword } = user;
-    return userWithoutPassword;
+    const user = await response.json();
+    return user as UserProfile;
   },
 
   getJobs: async (volunteerId?: string): Promise<{ jobs: JobSummary[] }> => {
-    await delay();
-    const jobs: JobSummary[] = mockJobs.map((job) => {
-      const requester = mockUsers.find((u) => u.id === job.requesterId);
-      const acceptedVolunteer = job.acceptedVolunteerId 
-        ? mockUsers.find((u) => u.id === job.acceptedVolunteerId)
-        : null;
-      
-      // เช็ค application status สำหรับอาสาสมัคร
-      let applicationStatus: string | undefined;
-      if (volunteerId) {
-        const application = mockApplications.find(
-          (a) => a.jobId === job.id && a.volunteerId === volunteerId
-        );
-        applicationStatus = application?.status;
-      }
-      
-      return {
-        id: job.id,
-        title: job.title,
-        requesterId: job.requesterId,
-        workDate: job.workDate,
-        startTime: job.startTime,
-        endTime: job.endTime,
-        location: job.location,
-        distanceKm: job.distanceKm,
-        status: job.status,
-        acceptedVolunteerId: job.acceptedVolunteerId,
-        requesterDisabilityType: requester?.disabilityType,
-        applicationStatus,
-      };
-    });
+    const url = volunteerId
+      ? `${API_BASE_URL}/jobs?volunteerId=${encodeURIComponent(volunteerId)}`
+      : `${API_BASE_URL}/jobs`;
+    const response = await fetch(url);
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || 'ไม่สามารถดึงข้อมูลงานได้');
+    }
+    const data = await response.json();
+    const jobs: JobSummary[] = (data.jobs || []).map((j: any) => ({
+      id: j.id,
+      title: j.title,
+      requesterId: j.requesterId,
+      workDate: j.workDate,
+      startTime: j.startTime,
+      endTime: j.endTime,
+      location: j.location,
+      distanceKm: j.distanceKm ?? 0,
+      status: j.status,
+      acceptedVolunteerId: j.acceptedVolunteerId,
+      requesterDisabilityType: j.requesterDisabilityType,
+      applicationStatus: j.applicationStatus,
+    }));
     return { jobs };
   },
 
   getJob: async (id: string, volunteerId?: string): Promise<JobDetail> => {
-    await delay();
-    const job = mockJobs.find((j) => j.id === id);
-    if (!job) {
-      throw new Error('ไม่พบงาน');
+    const url = volunteerId
+      ? `${API_BASE_URL}/jobs/${encodeURIComponent(id)}?volunteerId=${encodeURIComponent(volunteerId)}`
+      : `${API_BASE_URL}/jobs/${encodeURIComponent(id)}`;
+    const response = await fetch(url);
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || 'ไม่พบงาน');
     }
-    
-    // เช็ค application status สำหรับอาสาสมัคร
-    let applicationStatus: string | undefined;
-    if (volunteerId) {
-      const application = mockApplications.find(
-        (a) => a.jobId === job.id && a.volunteerId === volunteerId
-      );
-      applicationStatus = application?.status;
-    }
-    
-    const requester = mockUsers.find((u) => u.id === job.requesterId);
-    
-    return {
-      ...job,
-      applicationStatus,
-      requesterDisabilityType: requester?.disabilityType,
+    const j = await response.json();
+    const job: JobDetail = {
+      id: j.id,
+      title: j.title,
+      requesterId: j.requesterId,
+      workDate: j.workDate,
+      startTime: j.startTime,
+      endTime: j.endTime,
+      location: j.location,
+      distanceKm: j.distanceKm ?? 0,
+      status: j.status,
+      acceptedVolunteerId: j.acceptedVolunteerId,
+      description: j.description,
+      meetingPoint: j.meetingPoint,
+      requirements: j.requirements ?? [],
+      latitude: j.latitude,
+      longitude: j.longitude,
+      contactName: j.contactName ?? '',
+      contactNumber: j.contactNumber ?? '',
+      requesterDisabilityType: j.requesterDisabilityType,
+      applicationStatus: j.applicationStatus,
+      requesterRating: j.requesterRating ?? undefined,
+      requesterReview: j.requesterReview ?? undefined,
     };
+    return job;
   },
 
   submitRating: async (jobId: string, payload: { rating: number; review: string }): Promise<void> => {
-    await delay();
-    const job = mockJobs.find((j) => j.id === jobId);
-    if (!job) {
-      throw new Error('ไม่พบงาน');
-    }
-    
-    if (!job.acceptedVolunteerId) {
-      throw new Error('งานนี้ยังไม่มีผู้ดูแล');
-    }
-
-    // เก็บ rating และ review ใน job
-    job.requesterRating = payload.rating;
-    job.requesterReview = payload.review;
-
-    // อัปเดต rating ของ volunteer
-    const volunteer = mockUsers.find((u) => u.id === job.acceptedVolunteerId);
-    if (volunteer) {
-      // คำนวณ rating ใหม่ (เฉลี่ย)
-      const totalRatings = volunteer.completedJobs;
-      if (totalRatings > 0) {
-        // ถ้ามี rating เก่า (จาก completeJob) ให้คำนวณใหม่
-        const oldRating = volunteer.rating;
-        const newTotal = oldRating * (totalRatings - 1) + payload.rating;
-        volunteer.rating = newTotal / totalRatings;
-      } else {
-        volunteer.rating = payload.rating;
+    try {
+      const response = await fetch(`${API_BASE_URL}/jobs/${encodeURIComponent(jobId)}/rating`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rating: payload.rating, review: payload.review }),
+      });
+      if (!response.ok && response.status !== 204) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'ไม่สามารถให้คะแนนได้');
       }
+    } catch (error) {
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error('เกิดข้อผิดพลาดในการเชื่อมต่อ');
     }
   },
 
@@ -824,228 +813,179 @@ export const api = {
     startTime?: string;
     endTime?: string;
   }): Promise<JobDetail> => {
-    await delay();
-    const newJob: JobDetail = {
-      id: `job-${mockJobs.length + 1}`,
-      title: payload.title,
-      requesterId: payload.requesterId,
-      workDate: payload.workDate,
-      startTime: payload.startTime,
-      endTime: payload.endTime,
-      location: payload.location,
-      distanceKm: 0,
-      status: 'open',
-      description: payload.description,
-      meetingPoint: payload.meetingPoint,
-      requirements: payload.requirements,
-      latitude: payload.latitude,
-      longitude: payload.longitude,
-      contactName: mockUsers.find((u) => u.id === payload.requesterId) ? `${mockUsers.find((u) => u.id === payload.requesterId)?.firstName || ''} ${mockUsers.find((u) => u.id === payload.requesterId)?.lastName || ''}`.trim() : '',
-      contactNumber: mockUsers.find((u) => u.id === payload.requesterId)?.phone || '',
+    const response = await fetch(`${API_BASE_URL}/jobs`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        requesterId: payload.requesterId,
+        title: payload.title,
+        location: payload.location,
+        meetingPoint: payload.meetingPoint,
+        description: payload.description,
+        requirements: payload.requirements,
+        latitude: payload.latitude,
+        longitude: payload.longitude,
+        workDate: payload.workDate,
+        startTime: payload.startTime,
+        endTime: payload.endTime,
+      }),
+    });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || 'ไม่สามารถสร้างงานได้');
+    }
+    const j = await response.json();
+    const job: JobDetail = {
+      id: j.id,
+      title: j.title,
+      requesterId: j.requesterId,
+      workDate: j.workDate,
+      startTime: j.startTime,
+      endTime: j.endTime,
+      location: j.location,
+      distanceKm: j.distanceKm ?? 0,
+      status: j.status,
+      description: j.description,
+      meetingPoint: j.meetingPoint,
+      requirements: j.requirements ?? [],
+      latitude: j.latitude,
+      longitude: j.longitude,
+      contactName: j.contactName ?? '',
+      contactNumber: j.contactNumber ?? '',
     };
-    mockJobs.push(newJob);
-    return { ...newJob };
+    return job;
   },
 
   applyToJob: async (jobId: string, payload: { volunteerId: string }): Promise<{ id: string }> => {
-    await delay();
-    
-    // ตรวจสอบว่ามี application อยู่แล้วหรือไม่
-    const existingApp = mockApplications.find(
-      (a) => a.jobId === jobId && a.volunteerId === payload.volunteerId
-    );
-    if (existingApp) {
-      throw new Error('คุณได้สมัครงานนี้แล้ว');
+    const response = await fetch(`${API_BASE_URL}/jobs/${encodeURIComponent(jobId)}/apply`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ volunteerId: payload.volunteerId }),
+    });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || 'ไม่สามารถสมัครงานนี้ได้');
     }
-    
-    const newApplication: Application = {
-      id: `app-${mockApplications.length + 1}`,
-      jobId,
-      volunteerId: payload.volunteerId,
-      status: 'pending',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-    mockApplications.push(newApplication);
-    return { id: newApplication.id };
+    return (await response.json()) as { id: string };
   },
 
   cancelApplication: async (jobId: string, volunteerId: string): Promise<void> => {
-    await delay();
-    const applicationIndex = mockApplications.findIndex(
-      (a) => a.jobId === jobId && a.volunteerId === volunteerId
-    );
-    
-    if (applicationIndex === -1) {
-      throw new Error('ไม่พบใบสมัคร');
+    const response = await fetch(`${API_BASE_URL}/jobs/${encodeURIComponent(jobId)}/cancel`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ volunteerId }),
+    });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || 'ไม่สามารถยกเลิกได้');
     }
-    
-    const application = mockApplications[applicationIndex];
-    if (application.status !== 'pending') {
-      throw new Error('ไม่สามารถยกเลิกใบสมัครที่ได้รับการยืนยันหรือถูกปฏิเสธแล้ว');
-    }
-    
-    // ลบ application
-    mockApplications.splice(applicationIndex, 1);
   },
 
   completeJob: async (jobId: string, payload: { volunteerId: string; rating: number; comment: string }): Promise<void> => {
-    await delay();
-    // Update job status
-    const job = mockJobs.find((j) => j.id === jobId);
-    if (job) {
-      job.status = 'completed';
-    }
-    // Update application status
-    const application = mockApplications.find((a) => a.jobId === jobId && a.volunteerId === payload.volunteerId);
-    if (application) {
-      application.status = 'completed';
-      application.updatedAt = new Date().toISOString();
-    }
-    // Update volunteer stats
-    const volunteer = mockUsers.find((u) => u.id === payload.volunteerId);
-    if (volunteer) {
-      volunteer.completedJobs += 1;
-      // Simple rating update (average)
-      volunteer.rating = (volunteer.rating * (volunteer.completedJobs - 1) + payload.rating) / volunteer.completedJobs;
+    const response = await fetch(`${API_BASE_URL}/jobs/${encodeURIComponent(jobId)}/complete`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (!response.ok && response.status !== 204) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || 'ไม่สามารถปิดงานได้');
     }
   },
 
-  completeJobByRequester: async (jobId: string): Promise<void> => {
-    await delay();
-    const job = mockJobs.find((j) => j.id === jobId);
-    if (!job) {
-      throw new Error('ไม่พบงาน');
-    }
-    
-    if (!job.acceptedVolunteerId) {
-      throw new Error('งานนี้ยังไม่มีผู้ดูแล');
-    }
-
-    if (job.status === 'completed') {
-      throw new Error('งานนี้เสร็จสิ้นแล้ว');
-    }
-
-    // เปลี่ยน status เป็น completed
-    job.status = 'completed';
-
-    // อัปเดต application status
-    const application = mockApplications.find((a) => a.jobId === jobId && a.volunteerId === job.acceptedVolunteerId);
-    if (application) {
-      application.status = 'completed';
-      application.updatedAt = new Date().toISOString();
-    }
-
-    // อัปเดต volunteer stats (เพิ่ม completedJobs แต่ยังไม่คำนวณ rating เพราะจะให้คะแนนทีหลัง)
-    const volunteer = mockUsers.find((u) => u.id === job.acceptedVolunteerId);
-    if (volunteer) {
-      volunteer.completedJobs += 1;
+  completeJobByRequester: async (jobId: string, volunteerId: string): Promise<void> => {
+    const response = await fetch(`${API_BASE_URL}/jobs/${encodeURIComponent(jobId)}/complete`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ volunteerId }),
+    });
+    if (!response.ok && response.status !== 204) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || 'ไม่สามารถเสร็จสิ้นงานได้');
     }
   },
 
   getProfile: async (id: string): Promise<UserProfile> => {
-    await delay();
-    const user = mockUsers.find((u) => u.id === id);
-    if (!user) {
-      throw new Error('ไม่พบผู้ใช้');
+    const response = await fetch(`${API_BASE_URL}/users/${encodeURIComponent(id)}`);
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || 'ไม่พบผู้ใช้');
     }
-    // Remove password before returning (don't expose password in response)
-    const { password: _, ...userWithoutPassword } = user;
-    return userWithoutPassword;
+    const user = await response.json();
+    return user as UserProfile;
   },
 
   getVolunteerApplications: async (id: string): Promise<{ items: VolunteerApplication[] }> => {
-    await delay();
-    const userApplications = mockApplications.filter((a) => a.volunteerId === id);
-    const items: VolunteerApplication[] = userApplications.map((app) => {
-      const job = mockJobs.find((j) => j.id === app.jobId);
-      if (!job) {
-        throw new Error('ไม่พบงาน');
-      }
-      const requester = mockUsers.find((u) => u.id === job.requesterId);
-      return {
-        application: app,
-        job: {
-          id: job.id,
-          title: job.title,
-          requesterId: job.requesterId,
-          workDate: job.workDate,
-          startTime: job.startTime,
-          endTime: job.endTime,
-          location: job.location,
-          distanceKm: job.distanceKm,
-          status: job.status,
-          acceptedVolunteerId: job.acceptedVolunteerId,
-          requesterDisabilityType: requester?.disabilityType,
-        },
-      };
-    });
+    const response = await fetch(`${API_BASE_URL}/volunteers/${encodeURIComponent(id)}/applications`);
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || 'ไม่สามารถดึงใบสมัครได้');
+    }
+    const data = await response.json();
+    const items: VolunteerApplication[] = (data.items || []).map((it: any) => ({
+      application: {
+        id: it.application.id,
+        jobId: it.application.jobId,
+        volunteerId: it.application.volunteerId,
+        status: it.application.status,
+        createdAt: it.application.createdAt,
+        updatedAt: it.application.updatedAt,
+      },
+      job: {
+        id: it.job.id,
+        title: it.job.title,
+        requesterId: it.job.requesterId,
+        workDate: it.job.workDate,
+        startTime: it.job.startTime,
+        endTime: it.job.endTime,
+        location: it.job.location,
+        distanceKm: it.job.distanceKm ?? 0,
+        status: it.job.status,
+        acceptedVolunteerId: it.job.acceptedVolunteerId,
+        requesterDisabilityType: it.job.requesterDisabilityType,
+      },
+    }));
     return { items };
   },
 
   getJobApplications: async (jobId: string): Promise<{ applications: Array<Application & { volunteer: UserProfile }> }> => {
-    await delay();
-    const applications = mockApplications.filter((a) => a.jobId === jobId && a.status === 'pending');
-    const result = applications.map((app) => {
-      const volunteer = mockUsers.find((u) => u.id === app.volunteerId);
-      if (!volunteer) {
-        throw new Error('ไม่พบอาสาสมัคร');
-      }
-      const { password: _, ...volunteerWithoutPassword } = volunteer;
-      return {
-        ...app,
-        volunteer: volunteerWithoutPassword,
-      };
-    });
-    return { applications: result };
+    const response = await fetch(`${API_BASE_URL}/jobs/${encodeURIComponent(jobId)}/applications`);
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || 'ไม่สามารถดึงรายชื่อผู้สมัครได้');
+    }
+    const data = await response.json();
+    return {
+      applications: (data.applications || []).map((a: any) => ({
+        id: a.id,
+        jobId: a.jobId,
+        volunteerId: a.volunteerId,
+        status: a.status,
+        createdAt: a.createdAt,
+        updatedAt: a.updatedAt,
+        volunteer: a.volunteer,
+      })),
+    };
   },
 
   acceptApplication: async (applicationId: string): Promise<void> => {
-    await delay();
-    const application = mockApplications.find((a) => a.id === applicationId);
-    if (!application) {
-      throw new Error('ไม่พบใบสมัคร');
-    }
-    
-    // เปลี่ยน status ของ application เป็น accepted
-    application.status = 'accepted';
-    application.updatedAt = new Date().toISOString();
-    
-    // อัปเดต job ให้มี acceptedVolunteerId
-    const job = mockJobs.find((j) => j.id === application.jobId);
-    if (job) {
-      job.acceptedVolunteerId = application.volunteerId;
-      // เปลี่ยน status ของ job เป็น in_progress หรือ assigned
-      if (job.status === 'open') {
-        job.status = 'in_progress';
-      }
-    }
-    
-    // ปฏิเสธ application อื่นๆ ที่เหลือ
-    const otherApplications = mockApplications.filter(
-      (a) => a.jobId === application.jobId && a.id !== applicationId && a.status === 'pending'
-    );
-    otherApplications.forEach((app) => {
-      app.status = 'rejected';
-      app.updatedAt = new Date().toISOString();
+    const response = await fetch(`${API_BASE_URL}/applications/${encodeURIComponent(applicationId)}/accept`, {
+      method: 'POST',
     });
+    if (!response.ok && response.status !== 204) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || 'ไม่สามารถยืนยันผู้สมัครได้');
+    }
   },
 
   deleteJob: async (jobId: string): Promise<void> => {
-    await delay();
-    const index = mockJobs.findIndex((j) => j.id === jobId);
-    if (index === -1) {
-      throw new Error('ไม่พบงาน');
-    }
-    mockJobs.splice(index, 1);
-    // ลบ applications ที่เกี่ยวข้อง
-    const relatedApps = mockApplications.filter((a) => a.jobId === jobId);
-    relatedApps.forEach((app) => {
-      const appIndex = mockApplications.findIndex((a) => a.id === app.id);
-      if (appIndex !== -1) {
-        mockApplications.splice(appIndex, 1);
-      }
+    const response = await fetch(`${API_BASE_URL}/jobs/${encodeURIComponent(jobId)}`, {
+      method: 'DELETE',
     });
+    if (!response.ok && response.status !== 204) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || 'ลบงานไม่สำเร็จ');
+    }
   },
 
   updateJob: async (jobId: string, payload: {
@@ -1058,51 +998,59 @@ export const api = {
     latitude?: number;
     longitude?: number;
   }): Promise<JobDetail> => {
-    await delay();
-    const job = mockJobs.find((j) => j.id === jobId);
-    if (!job) {
-      throw new Error('ไม่พบงาน');
+    const response = await fetch(`${API_BASE_URL}/jobs/${encodeURIComponent(jobId)}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || 'อัปเดตงานไม่สำเร็จ');
     }
-    
-    // อัปเดตข้อมูล
-    if (payload.title !== undefined) job.title = payload.title;
-    if (payload.workDate !== undefined) job.workDate = payload.workDate;
-    if (payload.startTime !== undefined) job.startTime = payload.startTime;
-    if (payload.endTime !== undefined) job.endTime = payload.endTime;
-    if (payload.location !== undefined) job.location = payload.location;
-    if (payload.description !== undefined) job.description = payload.description;
-    if (payload.latitude !== undefined) job.latitude = payload.latitude;
-    if (payload.longitude !== undefined) job.longitude = payload.longitude;
-    
-    
-    return { ...job };
+    const j = await response.json();
+    const job: JobDetail = {
+      id: j.id,
+      title: j.title,
+      requesterId: j.requesterId,
+      workDate: j.workDate,
+      startTime: j.startTime,
+      endTime: j.endTime,
+      location: j.location,
+      distanceKm: j.distanceKm ?? 0,
+      status: j.status,
+      acceptedVolunteerId: j.acceptedVolunteerId,
+      description: j.description,
+      meetingPoint: j.meetingPoint,
+      requirements: j.requirements ?? [],
+      latitude: j.latitude,
+      longitude: j.longitude,
+      contactName: j.contactName ?? '',
+      contactNumber: j.contactNumber ?? '',
+    };
+    return job;
   },
 
   getRequesterJobs: async (id: string): Promise<{ jobs: JobSummary[] }> => {
-    await delay();
-    const requesterJobs = mockJobs.filter((j) => j.requesterId === id);
-    const jobs: JobSummary[] = requesterJobs.map((job) => {
-      const acceptedVolunteer = job.acceptedVolunteerId 
-        ? mockUsers.find((u) => u.id === job.acceptedVolunteerId)
-        : null;
-      
-      return {
-        id: job.id,
-        title: job.title,
-        requesterId: job.requesterId,
-        workDate: job.workDate,
-        startTime: job.startTime,
-        endTime: job.endTime,
-        location: job.location,
-        distanceKm: job.distanceKm,
-        status: job.status,
-        acceptedVolunteerId: job.acceptedVolunteerId,
-        acceptedVolunteerName: acceptedVolunteer 
-          ? `${acceptedVolunteer.firstName} ${acceptedVolunteer.lastName}`.trim()
-          : undefined,
-        requesterDisabilityType: undefined, // ไม่ต้องแสดงสำหรับ requester
-      };
-    });
+    const response = await fetch(`${API_BASE_URL}/requesters/${encodeURIComponent(id)}/jobs`);
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || 'ไม่สามารถดึงข้อมูลงานได้');
+    }
+    const data = await response.json();
+    const jobs: JobSummary[] = (data.jobs || []).map((j: any) => ({
+      id: j.id,
+      title: j.title,
+      requesterId: j.requesterId,
+      workDate: j.workDate,
+      startTime: j.startTime,
+      endTime: j.endTime,
+      location: j.location,
+      distanceKm: j.distanceKm ?? 0,
+      status: j.status,
+      acceptedVolunteerId: j.acceptedVolunteerId,
+      acceptedVolunteerName: j.acceptedVolunteerName,
+      requesterDisabilityType: undefined,
+    }));
     return { jobs };
   },
 };

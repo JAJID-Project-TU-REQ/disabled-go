@@ -58,40 +58,35 @@ export const EditJobScreen: React.FC<Props> = ({ navigation, route }) => {
     try {
       const job = await api.getJob(jobId);
       
-      // Parse วันที่
+      // Parse วันที่ (รองรับทั้ง "YYYY-MM-DD" และ "YYYY-MM-DDTHH:MM:SS")
       let workDate: Date | null = null;
       if (job.workDate) {
-        const [year, month, day] = job.workDate.split('-').map(Number);
-        workDate = new Date(year, month - 1, day);
-      }
-
-      // Parse เวลาเริ่มงาน
-      let startTime: Date | null = null;
-      if (job.startTime) {
-        const [hours, minutes] = job.startTime.split(':').map(Number);
-        if (workDate) {
-          startTime = new Date(workDate);
-          startTime.setHours(hours, minutes, 0, 0);
-        } else {
-          const now = new Date();
-          startTime = new Date(now);
-          startTime.setHours(hours, minutes, 0, 0);
+        const datePart = job.workDate.split('T')[0]; // ตัดเวลาออกถ้ามี
+        const [yearStr, monthStr, dayStr] = datePart.split('-');
+        const year = Number(yearStr);
+        const month = Number(monthStr);
+        const day = Number(dayStr);
+        if (!Number.isNaN(year) && !Number.isNaN(month) && !Number.isNaN(day)) {
+          workDate = new Date(year, month - 1, day);
         }
       }
 
-      // Parse เวลาเลิกงาน
-      let endTime: Date | null = null;
-      if (job.endTime) {
-        const [hours, minutes] = job.endTime.split(':').map(Number);
-        if (workDate) {
-          endTime = new Date(workDate);
-          endTime.setHours(hours, minutes, 0, 0);
-        } else {
-          const now = new Date();
-          endTime = new Date(now);
-          endTime.setHours(hours, minutes, 0, 0);
-        }
-      }
+      // Helper แปลง string เวลา (เช่น "10:00" หรือ "10:00:00") เป็น Date
+      const buildTimeFromString = (timeStr: string | undefined | null, baseDate: Date | null): Date | null => {
+        if (!timeStr) return null;
+        const timePart = timeStr.split(' ')[0]; // กันเคสมี space ตามหลัง
+        const [hStr, mStr] = timePart.split(':');
+        const hours = Number(hStr);
+        const minutes = Number(mStr);
+        if (Number.isNaN(hours) || Number.isNaN(minutes)) return null;
+
+        const base = baseDate ? new Date(baseDate) : new Date();
+        base.setHours(hours, minutes, 0, 0);
+        return base;
+      };
+
+      const startTime = buildTimeFromString(job.startTime, workDate);
+      const endTime = buildTimeFromString(job.endTime, workDate);
 
       setJobForm({
         title: job.title,

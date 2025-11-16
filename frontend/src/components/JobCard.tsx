@@ -118,14 +118,42 @@ export const JobCard: React.FC<Props> = ({ job, onPress }) => {
 
   // กำหนดว่าจะแสดง status อะไร
   const getDisplayStatus = () => {
-    // สำหรับอาสาสมัคร: แสดง application status ถ้ามี, ถ้าไม่มีแสดง job status
-    if (user?.role === 'volunteer' && job.applicationStatus) {
+    // สำหรับอาสาสมัคร: ถ้างานเสร็จแล้วแสดง "เสร็จสิ้น", ถ้ามี application status แสดง application status, ถ้าไม่มีแสดง job status
+    if (user?.role === 'volunteer') {
+      if (job.status === 'completed') {
+        return {
+          label: getStatusLabel('completed'),
+          style: getStatusBadgeStyle('completed'),
+        };
+      }
+      if (job.applicationStatus) {
+        return {
+          label: getApplicationStatusLabel(job.applicationStatus),
+          style: getApplicationStatusBadgeStyle(job.applicationStatus),
+        };
+      }
       return {
-        label: getApplicationStatusLabel(job.applicationStatus),
-        style: getApplicationStatusBadgeStyle(job.applicationStatus),
+        label: getStatusLabel(job.status),
+        style: getStatusBadgeStyle(job.status),
       };
     }
-    // สำหรับผู้พิการ: แสดง job status
+
+    // สำหรับผู้พิการ: ถ้างานเสร็จแล้วแสดง "เสร็จสิ้น", ถ้ามี acceptedVolunteerId แล้ว ให้ถือว่า "กำลังดำเนินการ", ถ้าไม่มีใช้ job status
+    if (user?.role === 'requester') {
+      if (job.status === 'completed') {
+        return {
+          label: getStatusLabel('completed'),
+          style: getStatusBadgeStyle('completed'),
+        };
+      }
+      const derivedStatus = job.acceptedVolunteerId ? 'in_progress' : job.status;
+      return {
+        label: getStatusLabel(derivedStatus),
+        style: getStatusBadgeStyle(derivedStatus),
+      };
+    }
+
+    // กรณีอื่น ๆ ใช้ job status ตรง ๆ
     return {
       label: getStatusLabel(job.status),
       style: getStatusBadgeStyle(job.status),
