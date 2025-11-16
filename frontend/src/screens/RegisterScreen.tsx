@@ -87,9 +87,8 @@ export const RegisterScreen: React.FC<Props> = ({ navigation }) => {
       Alert.alert('ข้อมูลไม่ครบถ้วน', 'กรุณากรอกข้อมูลที่จำเป็นให้ครบถ้วน');
       return;
     }
-
-    if (payload.password !== confirmPassword) {
-      Alert.alert('รหัสผ่านไม่ตรงกัน', 'กรุณายืนยันรหัสผ่านให้ตรงกัน');
+    if (payload.password.length < 6) {
+      Alert.alert('รหัสผ่านสั้นเกินไป', 'กรุณาตั้งรหัสผ่านอย่างน้อย 6 ตัวอักษร');
       return;
     }
 

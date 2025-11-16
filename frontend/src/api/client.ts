@@ -1,9 +1,149 @@
 import { Application, JobDetail, JobSummary, LoginResponse, UserProfile, VolunteerApplication } from '../types';
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:8080/api';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? 'https://20682f7e5189.ngrok-free.app';
+
+const toNumber = (value: unknown, fallback = 0): number => {
+  if (typeof value === 'number' && !Number.isNaN(value)) {
+    return value;
+  }
+  if (typeof value === 'string') {
+    const parsed = Number(value);
+    return Number.isNaN(parsed) ? fallback : parsed;
+  }
+  return fallback;
+};
+
+const toStringArray = (value: unknown): string[] => {
+  if (Array.isArray(value)) {
+    return value.map((item) => String(item));
+  }
+  if (typeof value === 'string' && value.trim().startsWith('[')) {
+    try {
+      const parsed = JSON.parse(value);
+      if (Array.isArray(parsed)) {
+        return parsed.map((item) => String(item));
+      }
+    } catch {
+      return [];
+    }
+  }
+  return [];
+};
+
+const jobResponseToDetail = (data: any): JobDetail => {
+  const requirements = toStringArray(data?.requirements);
+
+  const job: JobDetail = {
+    id: data?.id ?? '',
+    title: data?.title ?? '',
+    requesterId: data?.requesterId ?? '',
+    workDate: data?.workDate || undefined,
+    startTime: data?.startTime || undefined,
+    endTime: data?.endTime || undefined,
+    location: data?.location ?? '',
+    distanceKm: toNumber(data?.distanceKm),
+    status: data?.status ?? 'open',
+    acceptedVolunteerId: data?.acceptedVolunteerId || undefined,
+    acceptedVolunteerName: data?.acceptedVolunteerName || undefined,
+    requesterDisabilityType: data?.requesterDisabilityType || undefined,
+    applicationStatus: undefined,
+    description: data?.description ?? '',
+    meetingPoint: data?.meetingPoint ?? data?.location ?? '',
+    requirements,
+    latitude: toNumber(data?.latitude),
+    longitude: toNumber(data?.longitude),
+    contactName: data?.contactName ?? '',
+    contactNumber: data?.contactNumber ?? '',
+    requesterRating: typeof data?.requesterRating === 'number' ? data.requesterRating : undefined,
+    requesterReview: data?.requesterReview || undefined,
+  };
+
+  return job;
+};
+
+const toISODateString = (value: unknown): string => {
+  if (typeof value === 'string' && value.trim()) {
+    return value;
+  }
+  if (value instanceof Date) {
+    return value.toISOString();
+  }
+  if (typeof value === 'number') {
+    return new Date(value).toISOString();
+  }
+  return new Date().toISOString();
+};
+
+const normalizeUserProfile = (data: any): UserProfile => ({
+  id: data?.id ?? '',
+  role: data?.role ?? 'volunteer',
+  firstName: data?.firstName ?? '',
+  lastName: data?.lastName ?? '',
+  nationalId: data?.nationalId ?? '',
+  phone: data?.phone ?? '',
+  email: data?.email || undefined,
+  address: data?.address || undefined,
+  skills: toStringArray(data?.skills),
+  biography: data?.biography ?? '',
+  disabilityType: data?.disabilityType || undefined,
+  additionalNeeds: toStringArray(data?.additionalNeeds),
+  interests: toStringArray(data?.interests),
+  rating: toNumber(data?.rating, 0),
+  completedJobs: toNumber(data?.completedJobs, 0),
+  createdAt: toISODateString(data?.createdAt),
+});
+
+const normalizeApplication = (data: any, fallbackJobId?: string): Application => ({
+  id: data?.id ?? data?.applicationId ?? '',
+  jobId: data?.jobId ?? fallbackJobId ?? '',
+  volunteerId: data?.volunteerId ?? '',
+  status: data?.status ?? 'pending',
+  createdAt: toISODateString(data?.createdAt),
+  updatedAt: toISODateString(data?.updatedAt),
+});
+
+const syncMockApplications = (applications: Application[]) => {
+  if (applications.length === 0) {
+    return;
+  }
+  const incomingIds = new Set(applications.map((app) => app.id));
+  mockApplications = [
+    ...applications,
+    ...mockApplications.filter((existing) => !incomingIds.has(existing.id)),
+  ];
+};
+
+const jobDetailToSummary = (detail: JobDetail): JobSummary => {
+  const {
+    description: _d,
+    meetingPoint: _m,
+    requirements: _r,
+    latitude: _lat,
+    longitude: _lng,
+    contactName: _cn,
+    contactNumber: _cnum,
+    requesterRating: _rr,
+    requesterReview: _rv,
+    ...summary
+  } = detail;
+  return summary;
+};
+
+const syncMockJobs = (incoming: JobDetail[]) => {
+  if (incoming.length === 0) {
+    return;
+  }
+  const incomingIds = new Set(incoming.map((job) => job.id));
+  mockJobs = [...incoming, ...mockJobs.filter((job) => !incomingIds.has(job.id))];
+};
 
 // Internal type for mock users (includes password that we don't expose)
 type MockUser = UserProfile & { password: string };
+
+const withoutPassword = (user: MockUser): UserProfile => {
+  const { password: _pw, ...rest } = user;
+  return rest;
+};
 
 // Mock data storage (in-memory)
 let mockUsers: MockUser[] = [
@@ -600,17 +740,32 @@ const delay = (ms: number = 500) => new Promise((resolve) => setTimeout(resolve,
 
 export const api = {
   login: async (nationalId: string, password: string): Promise<LoginResponse> => {
-    await delay();
-    const user = mockUsers.find((u) => u.nationalId === nationalId);
-    if (!user || user.password !== password) {
-      throw new Error('เลขบัตรประชาชนหรือรหัสผ่านไม่ถูกต้อง');
+    // Call real backend
+    try {
+      const res = await fetch(`${API_BASE_URL}/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ nationalId, password }),
+      });
+
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        const msg = data?.error || data?.message || 'เข้าสู่ระบบล้มเหลว';
+        throw new Error(msg);
+      }
+
+      // Expect { token, user }
+      if (!data || !data.token || !data.user) {
+        throw new Error('Invalid response from server');
+      }
+
+      return data as LoginResponse;
+    } catch (err) {
+      if (err instanceof Error) throw err;
+      throw new Error('Network error');
     }
-    // Remove password before returning (don't expose password in response)
-    const { password: _, ...userWithoutPassword } = user;
-    return {
-      token: `mock-token-${user.id}`,
-      user: userWithoutPassword,
-    };
   },
 
   register: async (payload: Partial<UserProfile> & { 
@@ -625,35 +780,28 @@ export const api = {
     disabilityType?: string;
     additionalNeeds?: string[];
   }): Promise<UserProfile> => {
-    await delay();
-    
-    // Check if nationalId already exists
-    if (mockUsers.some((u) => u.nationalId === payload.nationalId)) {
-      throw new Error('เลขบัตรประชาชนนี้ถูกใช้งานแล้ว');
+    try {
+      const res = await fetch(`${API_BASE_URL}/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        const msg = data?.error || data?.message || 'สมัครสมาชิกล้มเหลว';
+        throw new Error(msg);
+      }
+
+      // Backend returns { id, user } — prefer user, but accept direct user too
+      const user: UserProfile = data.user ?? data;
+      return user;
+    } catch (err) {
+      if (err instanceof Error) throw err;
+      throw new Error('Network error');
     }
-    
-    const newUser: MockUser = {
-      id: `user-${mockUsers.length + 1}`,
-      role: payload.role,
-      firstName: payload.firstName || '',
-      lastName: payload.lastName || '',
-      nationalId: payload.nationalId || '',
-      phone: payload.phone || '',
-      skills: payload.skills || [],
-      biography: payload.biography || '',
-      disabilityType: payload.disabilityType,
-      additionalNeeds: payload.additionalNeeds || [],
-      interests: [], // เก็บไว้สำหรับ backward compatibility
-      rating: 0,
-      completedJobs: 0,
-      createdAt: new Date().toISOString(),
-      password: payload.password || '',
-    };
-    mockUsers.push(newUser);
-    
-    // Remove password before returning (don't expose password in response)
-    const { password: _, ...userWithoutPassword } = newUser;
-    return userWithoutPassword;
   },
 
   getUser: async (id: string): Promise<UserProfile> => {
@@ -721,63 +869,44 @@ export const api = {
   },
 
   getJobs: async (volunteerId?: string): Promise<{ jobs: JobSummary[] }> => {
-    await delay();
-    const jobs: JobSummary[] = mockJobs.map((job) => {
-      const requester = mockUsers.find((u) => u.id === job.requesterId);
-      const acceptedVolunteer = job.acceptedVolunteerId 
-        ? mockUsers.find((u) => u.id === job.acceptedVolunteerId)
-        : null;
-      
-      // เช็ค application status สำหรับอาสาสมัคร
-      let applicationStatus: string | undefined;
-      if (volunteerId) {
+    const response = await fetch(`${API_BASE_URL}/api/jobs`);
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      const message = typeof body?.error === 'string' ? body.error : 'ไม่สามารถโหลดงานได้';
+      throw new Error(message);
+    }
+    const details: JobDetail[] = Array.isArray(body?.jobs)
+      ? body.jobs.map(jobResponseToDetail)
+      : [];
+    syncMockJobs(details);
+    let jobs: JobSummary[] = details.map(jobDetailToSummary);
+    if (volunteerId) {
+      jobs = jobs.map((job) => {
         const application = mockApplications.find(
           (a) => a.jobId === job.id && a.volunteerId === volunteerId
         );
-        applicationStatus = application?.status;
-      }
-      
-      return {
-        id: job.id,
-        title: job.title,
-        requesterId: job.requesterId,
-        workDate: job.workDate,
-        startTime: job.startTime,
-        endTime: job.endTime,
-        location: job.location,
-        distanceKm: job.distanceKm,
-        status: job.status,
-        acceptedVolunteerId: job.acceptedVolunteerId,
-        requesterDisabilityType: requester?.disabilityType,
-        applicationStatus,
-      };
-    });
+        return { ...job, applicationStatus: application?.status };
+      });
+    }
     return { jobs };
   },
 
   getJob: async (id: string, volunteerId?: string): Promise<JobDetail> => {
-    await delay();
-    const job = mockJobs.find((j) => j.id === id);
-    if (!job) {
-      throw new Error('ไม่พบงาน');
+    const response = await fetch(`${API_BASE_URL}/api/jobs/${id}`);
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      const message = typeof body?.error === 'string' ? body.error : 'ไม่พบงาน';
+      throw new Error(message);
     }
-    
-    // เช็ค application status สำหรับอาสาสมัคร
-    let applicationStatus: string | undefined;
+    const job = jobResponseToDetail(body);
+    syncMockJobs([job]);
     if (volunteerId) {
       const application = mockApplications.find(
         (a) => a.jobId === job.id && a.volunteerId === volunteerId
       );
-      applicationStatus = application?.status;
+      job.applicationStatus = application?.status;
     }
-    
-    const requester = mockUsers.find((u) => u.id === job.requesterId);
-    
-    return {
-      ...job,
-      applicationStatus,
-      requesterDisabilityType: requester?.disabilityType,
-    };
+    return job;
   },
 
   submitRating: async (jobId: string, payload: { rating: number; review: string }): Promise<void> => {
@@ -824,50 +953,53 @@ export const api = {
     startTime?: string;
     endTime?: string;
   }): Promise<JobDetail> => {
-    await delay();
-    const newJob: JobDetail = {
-      id: `job-${mockJobs.length + 1}`,
-      title: payload.title,
-      requesterId: payload.requesterId,
-      workDate: payload.workDate,
-      startTime: payload.startTime,
-      endTime: payload.endTime,
-      location: payload.location,
-      distanceKm: 0,
-      status: 'open',
-      description: payload.description,
-      meetingPoint: payload.meetingPoint,
-      requirements: payload.requirements,
-      latitude: payload.latitude,
-      longitude: payload.longitude,
-      contactName: mockUsers.find((u) => u.id === payload.requesterId) ? `${mockUsers.find((u) => u.id === payload.requesterId)?.firstName || ''} ${mockUsers.find((u) => u.id === payload.requesterId)?.lastName || ''}`.trim() : '',
-      contactNumber: mockUsers.find((u) => u.id === payload.requesterId)?.phone || '',
-    };
-    mockJobs.push(newJob);
-    return { ...newJob };
+    const response = await fetch(`${API_BASE_URL}/api/jobs`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const text = await response.text();
+    let body: any;
+    if (text) {
+      try {
+        body = JSON.parse(text);
+      } catch (error) {
+        if (!response.ok) {
+          throw new Error('ไม่สามารถสร้างงานได้');
+        }
+        throw error;
+      }
+    }
+
+    if (!response.ok) {
+      const errorMessage = typeof body?.error === 'string' ? body.error : 'ไม่สามารถสร้างงานได้';
+      throw new Error(errorMessage);
+    }
+
+    const job = jobResponseToDetail(body);
+
+    // keep legacy mock cache in sync so other mock endpoints can see the new job
+    mockJobs = [job, ...mockJobs.filter((existing) => existing.id !== job.id)];
+    return job;
   },
 
   applyToJob: async (jobId: string, payload: { volunteerId: string }): Promise<{ id: string }> => {
-    await delay();
-    
-    // ตรวจสอบว่ามี application อยู่แล้วหรือไม่
-    const existingApp = mockApplications.find(
-      (a) => a.jobId === jobId && a.volunteerId === payload.volunteerId
-    );
-    if (existingApp) {
-      throw new Error('คุณได้สมัครงานนี้แล้ว');
-    }
-    
-    const newApplication: Application = {
-      id: `app-${mockApplications.length + 1}`,
-      jobId,
-      volunteerId: payload.volunteerId,
-      status: 'pending',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-    mockApplications.push(newApplication);
-    return { id: newApplication.id };
+  const response = await fetch(`${API_BASE_URL}/api/jobs/${jobId}/applications`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  const body = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    const message = typeof body?.error === 'string' ? body.error : 'ไม่สามารถสมัครงานได้';
+    throw new Error(message);
+  }
+  const application = normalizeApplication(body, jobId);
+  syncMockApplications([{ ...application }]);
+  return { id: application.id };
   },
 
   cancelApplication: async (jobId: string, volunteerId: string): Promise<void> => {
@@ -984,51 +1116,82 @@ export const api = {
   },
 
   getJobApplications: async (jobId: string): Promise<{ applications: Array<Application & { volunteer: UserProfile }> }> => {
-    await delay();
-    const applications = mockApplications.filter((a) => a.jobId === jobId && a.status === 'pending');
-    const result = applications.map((app) => {
-      const volunteer = mockUsers.find((u) => u.id === app.volunteerId);
-      if (!volunteer) {
-        throw new Error('ไม่พบอาสาสมัคร');
-      }
-      const { password: _, ...volunteerWithoutPassword } = volunteer;
-      return {
-        ...app,
-        volunteer: volunteerWithoutPassword,
-      };
+    const response = await fetch(`${API_BASE_URL}/api/jobs/${jobId}/applications`);
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      const message = typeof body?.error === 'string' ? body.error : 'ไม่สามารถโหลดผู้สมัครได้';
+      throw new Error(message);
+    }
+    const applications = Array.isArray(body?.applications)
+      ? body.applications.map((item: any) => {
+        const application = normalizeApplication(item, jobId);
+        const volunteerProfile = item?.volunteer
+          ? normalizeUserProfile(item.volunteer)
+          : (() => {
+            const mockVolunteer = mockUsers.find((u) => u.id === application.volunteerId);
+            return mockVolunteer ? withoutPassword(mockVolunteer) : undefined;
+          })();
+        return {
+          ...application,
+          volunteer: volunteerProfile ?? {
+            id: application.volunteerId,
+            role: 'volunteer',
+            firstName: 'อาสาสมัคร',
+            lastName: '',
+            nationalId: '',
+            phone: '',
+            email: undefined,
+            address: undefined,
+            skills: [],
+            biography: '',
+            disabilityType: undefined,
+            additionalNeeds: [],
+            interests: [],
+            rating: 0,
+            completedJobs: 0,
+            createdAt: new Date().toISOString(),
+          },
+        };
+      })
+      : [];
+    const baseApplications = applications.map((item: Application & { volunteer: UserProfile }) => {
+      const { volunteer: _volunteer, ...rest } = item;
+      return rest as Application;
     });
-    return { applications: result };
+    syncMockApplications(baseApplications);
+    return { applications };
   },
 
   acceptApplication: async (applicationId: string): Promise<void> => {
-    await delay();
+    const response = await fetch(`${API_BASE_URL}/api/applications/${applicationId}/accept`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      const message = typeof body?.error === 'string' ? body.error : 'ไม่สามารถยืนยันได้';
+      throw new Error(message);
+    }
     const application = mockApplications.find((a) => a.id === applicationId);
     if (!application) {
-      throw new Error('ไม่พบใบสมัคร');
+      return;
     }
-    
-    // เปลี่ยน status ของ application เป็น accepted
+    const now = new Date().toISOString();
     application.status = 'accepted';
-    application.updatedAt = new Date().toISOString();
-    
-    // อัปเดต job ให้มี acceptedVolunteerId
+    application.updatedAt = now;
+    mockApplications = mockApplications.map((app) => {
+      if (app.jobId === application.jobId && app.id !== applicationId && app.status === 'pending') {
+        return { ...app, status: 'rejected', updatedAt: now };
+      }
+      return app.id === applicationId ? application : app;
+    });
     const job = mockJobs.find((j) => j.id === application.jobId);
     if (job) {
       job.acceptedVolunteerId = application.volunteerId;
-      // เปลี่ยน status ของ job เป็น in_progress หรือ assigned
       if (job.status === 'open') {
         job.status = 'in_progress';
       }
     }
-    
-    // ปฏิเสธ application อื่นๆ ที่เหลือ
-    const otherApplications = mockApplications.filter(
-      (a) => a.jobId === application.jobId && a.id !== applicationId && a.status === 'pending'
-    );
-    otherApplications.forEach((app) => {
-      app.status = 'rejected';
-      app.updatedAt = new Date().toISOString();
-    });
   },
 
   deleteJob: async (jobId: string): Promise<void> => {
@@ -1079,28 +1242,26 @@ export const api = {
   },
 
   getRequesterJobs: async (id: string): Promise<{ jobs: JobSummary[] }> => {
-    await delay();
-    const requesterJobs = mockJobs.filter((j) => j.requesterId === id);
-    const jobs: JobSummary[] = requesterJobs.map((job) => {
-      const acceptedVolunteer = job.acceptedVolunteerId 
-        ? mockUsers.find((u) => u.id === job.acceptedVolunteerId)
+    const response = await fetch(`${API_BASE_URL}/api/jobs?requesterId=${encodeURIComponent(id)}`);
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      const message = typeof body?.error === 'string' ? body.error : 'ไม่สามารถโหลดงานได้';
+      throw new Error(message);
+    }
+    const details: JobDetail[] = Array.isArray(body?.jobs)
+      ? body.jobs.map(jobResponseToDetail)
+      : [];
+    syncMockJobs(details);
+    const jobs = details.map((detail) => {
+      const summary = jobDetailToSummary(detail);
+      const acceptedVolunteer = summary.acceptedVolunteerId
+        ? mockUsers.find((u) => u.id === summary.acceptedVolunteerId)
         : null;
-      
       return {
-        id: job.id,
-        title: job.title,
-        requesterId: job.requesterId,
-        workDate: job.workDate,
-        startTime: job.startTime,
-        endTime: job.endTime,
-        location: job.location,
-        distanceKm: job.distanceKm,
-        status: job.status,
-        acceptedVolunteerId: job.acceptedVolunteerId,
-        acceptedVolunteerName: acceptedVolunteer 
+        ...summary,
+        acceptedVolunteerName: acceptedVolunteer
           ? `${acceptedVolunteer.firstName} ${acceptedVolunteer.lastName}`.trim()
           : undefined,
-        requesterDisabilityType: undefined, // ไม่ต้องแสดงสำหรับ requester
       };
     });
     return { jobs };
