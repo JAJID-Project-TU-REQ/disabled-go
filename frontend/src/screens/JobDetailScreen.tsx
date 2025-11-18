@@ -4,7 +4,9 @@ import React, { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  KeyboardAvoidingView,
   Linking,
+  Platform,
   ScrollView,
   Text,
   TextInput,
@@ -239,10 +241,17 @@ export const JobDetailScreen: React.FC<Props> = ({ route, navigation }) => {
   const isRequester = user?.role === 'requester';
 
   return (
-    <ScrollView
-      style={styles.screen}
-      contentContainerStyle={[styles.pad20, styles.pb40, getDynamicTopPadding(insets.top)]}
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
     >
+      <ScrollView
+        style={styles.screen}
+        contentContainerStyle={[styles.pad20, styles.pb40, getDynamicTopPadding(insets.top), { paddingBottom: 200 }]}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={true}
+      >
       {/* ชื่องาน */}
       <Text style={styles.titleCenter}>{job.title}</Text>
 
@@ -362,6 +371,8 @@ export const JobDetailScreen: React.FC<Props> = ({ route, navigation }) => {
                   placeholder="เขียนความคิดเห็นเกี่ยวกับการทำงานของผู้ดูแล..."
                   placeholderTextColor={colors.muted}
                   editable={true}
+                  textAlignVertical="top"
+                  scrollEnabled={true}
                 />
 
                 {/* ปุ่มยืนยันการให้คะแนน */}
@@ -553,6 +564,7 @@ export const JobDetailScreen: React.FC<Props> = ({ route, navigation }) => {
         </>
       )}
 
-    </ScrollView>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 };

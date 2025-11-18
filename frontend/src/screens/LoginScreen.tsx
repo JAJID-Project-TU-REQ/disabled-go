@@ -13,8 +13,8 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
 export const LoginScreen: React.FC<Props> = ({ navigation }) => {
   const insets = useSafeAreaInsets();
   const { login, isLoading } = useAuth();
-  const [nationalId, setNationalId] = useState('1234567890123');
-  const [password, setPassword] = useState('password');
+  const [nationalId, setNationalId] = useState('');
+  const [password, setPassword] = useState('');
 
   const handleLogin = async () => {
     try {

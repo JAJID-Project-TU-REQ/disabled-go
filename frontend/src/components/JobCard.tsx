@@ -118,18 +118,39 @@ export const JobCard: React.FC<Props> = ({ job, onPress }) => {
 
   // กำหนดว่าจะแสดง status อะไร
   const getDisplayStatus = () => {
-    // สำหรับอาสาสมัคร: ถ้างานเสร็จแล้วแสดง "เสร็จสิ้น", ถ้ามี application status แสดง application status, ถ้าไม่มีแสดง job status
+    // สำหรับอาสาสมัคร: 
+    // - ถ้างานเสร็จแล้ว (completed) และ applicationStatus = 'accepted' → แสดง "เสร็จสิ้น"
+    // - ถ้า applicationStatus = 'rejected' → แสดง "ไม่ผ่าน" (ไม่สนใจ job.status)
+    // - ถ้า applicationStatus = 'pending' → แสดง "รอดำเนินการ"
+    // - ถ้า applicationStatus = 'accepted' แต่ job.status !== 'completed' → แสดง "ยืนยันแล้ว"
+    // - ถ้าไม่มี applicationStatus แล้วค่อยเช็ค job status
     if (user?.role === 'volunteer') {
-      if (job.status === 'completed') {
+      // ถ้างานเสร็จแล้วและ applicationStatus = 'accepted' → แสดง "เสร็จสิ้น"
+      if (job.status === 'completed' && job.applicationStatus === 'accepted') {
         return {
           label: getStatusLabel('completed'),
           style: getStatusBadgeStyle('completed'),
         };
       }
+      // ถ้า applicationStatus = 'rejected' → แสดง "ไม่ผ่าน" (ไม่สนใจ job.status)
+      if (job.applicationStatus === 'rejected') {
+        return {
+          label: getApplicationStatusLabel('rejected'),
+          style: getApplicationStatusBadgeStyle('rejected'),
+        };
+      }
+      // ถ้ามี applicationStatus อื่นๆ (pending, accepted ที่ยังไม่เสร็จ) → แสดงตาม applicationStatus
       if (job.applicationStatus) {
         return {
           label: getApplicationStatusLabel(job.applicationStatus),
           style: getApplicationStatusBadgeStyle(job.applicationStatus),
+        };
+      }
+      // ถ้าไม่มี applicationStatus แล้วค่อยเช็ค job status
+      if (job.status === 'completed') {
+        return {
+          label: getStatusLabel('completed'),
+          style: getStatusBadgeStyle('completed'),
         };
       }
       return {

@@ -1,6 +1,6 @@
 import { Application, JobDetail, JobSummary, LoginResponse, UserProfile, VolunteerApplication } from '../types';
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? 'https://3cc8125a57a0.ngrok-free.app/api';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? 'https://a69bdf7b69b2.ngrok-free.app/api';
 
 // Internal type for mock users (includes password that we don't expose)
 type MockUser = UserProfile & { password: string };
