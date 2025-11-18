@@ -1,0 +1,454 @@
+{
+	"info": {
+		"_postman_id": "disabled-go-api-collection",
+		"name": "Disabled Go API",
+		"description": "API Collection for Disabled Go Backend",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Health Check",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/ping",
+					"host": ["{{base_url}}"],
+					"path": ["ping"]
+				}
+			}
+		},
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Register Volunteer",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"role\": \"volunteer\",\n  \"firstName\": \"สมชาย\",\n  \"lastName\": \"ใจดี\",\n  \"nationalId\": \"1100123456789\",\n  \"phone\": \"081-234-5678\",\n  \"email\": \"somchai@example.com\",\n  \"password\": \"password\",\n  \"skills\": [\"wheelchair_support\", \"thai_language\", \"first_aid\"],\n  \"biography\": \"ฉันมีความสนใจในการช่วยเหลือผู้พิการและผู้สูงอายุ\"\n}"
+						},
+						"url": {
+							"raw": "{{api_url}}/auth/register",
+							"host": ["{{api_url}}"],
+							"path": ["auth", "register"]
+						}
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const jsonData = pm.response.json();",
+									"    pm.environment.set(\"user_id_volunteer\", jsonData.id);",
+									"}"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "Register Requester",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"role\": \"requester\",\n  \"firstName\": \"สมหญิง\",\n  \"lastName\": \"ต้องการความช่วยเหลือ\",\n  \"nationalId\": \"1100456789012\",\n  \"phone\": \"084-567-8901\",\n  \"email\": \"somying@example.com\",\n  \"password\": \"password\",\n  \"disabilityType\": \"physical\",\n  \"additionalNeeds\": [\"wheelchair\"]\n}"
+						},
+						"url": {
+							"raw": "{{api_url}}/auth/register",
+							"host": ["{{api_url}}"],
+							"path": ["auth", "register"]
+						}
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const jsonData = pm.response.json();",
+									"    pm.environment.set(\"user_id_requester\", jsonData.id);",
+									"}"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "Login",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nationalId\": \"1100123456789\",\n  \"password\": \"password\"\n}"
+						},
+						"url": {
+							"raw": "{{api_url}}/auth/login",
+							"host": ["{{api_url}}"],
+							"path": ["auth", "login"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Users",
+			"item": [
+				{
+					"name": "Get User Profile",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{api_url}}/users/{{user_id_volunteer}}",
+							"host": ["{{api_url}}"],
+							"path": ["users", "{{user_id_volunteer}}"]
+						}
+					}
+				},
+				{
+					"name": "Update User Profile",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"firstName\": \"สมชาย\",\n  \"lastName\": \"ใจดีมาก\",\n  \"phone\": \"081-234-5678\",\n  \"biography\": \"อัปเดตประวัติใหม่\"\n}"
+						},
+						"url": {
+							"raw": "{{api_url}}/users/{{user_id_volunteer}}",
+							"host": ["{{api_url}}"],
+							"path": ["users", "{{user_id_volunteer}}"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Jobs",
+			"item": [
+				{
+					"name": "Get All Jobs",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{api_url}}/jobs?volunteerId={{user_id_volunteer}}",
+							"host": ["{{api_url}}"],
+							"path": ["jobs"],
+							"query": [
+								{
+									"key": "volunteerId",
+									"value": "{{user_id_volunteer}}",
+									"disabled": true
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Job by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{api_url}}/jobs/{{job_id}}?volunteerId={{user_id_volunteer}}",
+							"host": ["{{api_url}}"],
+							"path": ["jobs", "{{job_id}}"],
+							"query": [
+								{
+									"key": "volunteerId",
+									"value": "{{user_id_volunteer}}",
+									"disabled": true
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Create Job",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"requesterId\": \"{{user_id_requester}}\",\n  \"title\": \"ต้องการความช่วยเหลือไปโรงพยาบาล\",\n  \"location\": \"โรงพยาบาลจุฬาลงกรณ์\",\n  \"meetingPoint\": \"หน้าประตูหลัก\",\n  \"description\": \"ต้องการอาสาสมัครช่วยพาไปโรงพยาบาลเพื่อนัดตรวจสุขภาพประจำปี\",\n  \"requirements\": [\"wheelchair_support\", \"thai_language\"],\n  \"latitude\": 13.7367,\n  \"longitude\": 100.5231,\n  \"workDate\": \"2025-03-15\",\n  \"startTime\": \"09:00\",\n  \"endTime\": \"12:00\"\n}"
+						},
+						"url": {
+							"raw": "{{api_url}}/jobs",
+							"host": ["{{api_url}}"],
+							"path": ["jobs"]
+						}
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const jsonData = pm.response.json();",
+									"    pm.environment.set(\"job_id\", jsonData.id);",
+									"}"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "Update Job",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"อัปเดตชื่องาน\",\n  \"description\": \"อัปเดตรายละเอียด\",\n  \"workDate\": \"2025-03-20\",\n  \"startTime\": \"10:00\",\n  \"endTime\": \"13:00\"\n}"
+						},
+						"url": {
+							"raw": "{{api_url}}/jobs/{{job_id}}",
+							"host": ["{{api_url}}"],
+							"path": ["jobs", "{{job_id}}"]
+						}
+					}
+				},
+				{
+					"name": "Delete Job",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{api_url}}/jobs/{{job_id}}",
+							"host": ["{{api_url}}"],
+							"path": ["jobs", "{{job_id}}"]
+						}
+					}
+				},
+				{
+					"name": "Get Requester Jobs",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{api_url}}/requesters/{{user_id_requester}}/jobs",
+							"host": ["{{api_url}}"],
+							"path": ["requesters", "{{user_id_requester}}", "jobs"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Applications",
+			"item": [
+				{
+					"name": "Apply to Job",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"volunteerId\": \"{{user_id_volunteer}}\"\n}"
+						},
+						"url": {
+							"raw": "{{api_url}}/jobs/{{job_id}}/apply",
+							"host": ["{{api_url}}"],
+							"path": ["jobs", "{{job_id}}", "apply"]
+						}
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const jsonData = pm.response.json();",
+									"    pm.environment.set(\"application_id\", jsonData.id);",
+									"}"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "Cancel Application",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"volunteerId\": \"{{user_id_volunteer}}\"\n}"
+						},
+						"url": {
+							"raw": "{{api_url}}/jobs/{{job_id}}/cancel",
+							"host": ["{{api_url}}"],
+							"path": ["jobs", "{{job_id}}", "cancel"]
+						}
+					}
+				},
+				{
+					"name": "Get Job Applications",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{api_url}}/jobs/{{job_id}}/applications",
+							"host": ["{{api_url}}"],
+							"path": ["jobs", "{{job_id}}", "applications"]
+						}
+					}
+				},
+				{
+					"name": "Accept Application",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{api_url}}/applications/{{application_id}}/accept",
+							"host": ["{{api_url}}"],
+							"path": ["applications", "{{application_id}}", "accept"]
+						}
+					}
+				},
+				{
+					"name": "Reject Application",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{api_url}}/applications/{{application_id}}/reject",
+							"host": ["{{api_url}}"],
+							"path": ["applications", "{{application_id}}", "reject"]
+						}
+					}
+				},
+				{
+					"name": "Get Volunteer Applications",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{api_url}}/volunteers/{{user_id_volunteer}}/applications",
+							"host": ["{{api_url}}"],
+							"path": ["volunteers", "{{user_id_volunteer}}", "applications"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Completion & Reviews",
+			"item": [
+				{
+					"name": "Complete Job",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"volunteerId\": \"{{user_id_volunteer}}\"\n}"
+						},
+						"url": {
+							"raw": "{{api_url}}/jobs/{{job_id}}/complete",
+							"host": ["{{api_url}}"],
+							"path": ["jobs", "{{job_id}}", "complete"]
+						}
+					}
+				},
+				{
+					"name": "Submit Rating",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"rating\": 5,\n  \"review\": \"คุณสมชายช่วยเหลือได้ดีมาก ใจดีและมีความอดทนสูง ขอบคุณมากค่ะ\"\n}"
+						},
+						"url": {
+							"raw": "{{api_url}}/jobs/{{job_id}}/rating",
+							"host": ["{{api_url}}"],
+							"path": ["jobs", "{{job_id}}", "rating"]
+						}
+					}
+				},
+				{
+					"name": "Get Volunteer Reviews",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{api_url}}/volunteers/{{user_id_volunteer}}/reviews",
+							"host": ["{{api_url}}"],
+							"path": ["volunteers", "{{user_id_volunteer}}", "reviews"]
+						}
+					}
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:3000"
+		},
+		{
+			"key": "api_url",
+			"value": "http://localhost:3000/api"
+		}
+	]
+}
+

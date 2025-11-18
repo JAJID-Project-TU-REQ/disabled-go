@@ -1,19 +1,27 @@
 # Testing Guide
 
-## Setup
+> 📖 **สำหรับคู่มือการ Testing แบบละเอียดด้วย Postman:** ดูที่ [POSTMAN_TESTING_GUIDE.md](./POSTMAN_TESTING_GUIDE.md)
 
-1. Make sure database is running:
+## Quick Start
+
+### 1. Setup Backend
 ```bash
 cd backend
 docker compose up -d
 ```
 
-2. Check if database is ready:
+### 2. ตรวจสอบว่า server ทำงาน
 ```bash
-docker compose ps
+curl http://localhost:3000/ping
 ```
 
-## Test Endpoints
+ควรเห็น: `{"message":"pong"}`
+
+### 3. วิธี Testing
+- **Manual Testing ด้วย Postman:** ดู [POSTMAN_TESTING_GUIDE.md](./POSTMAN_TESTING_GUIDE.md)
+- **Unit Testing:** ดู [TESTING_GUIDE.md](./TESTING_GUIDE.md)
+
+## Test Endpoints (Quick Reference)
 
 ### 1. Health Check
 ```bash

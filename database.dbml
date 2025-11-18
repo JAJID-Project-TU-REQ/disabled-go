@@ -1,0 +1,78 @@
+// Use DBML to define your database structure
+// Docs: https://dbml.dbdiagram.io/docs
+
+Table users {
+  id varchar(36) [primary key]
+  role varchar [note: 'ENUM: volunteer, requester']
+  first_name varchar(100) [not null]
+  last_name varchar(100) [not null]
+  national_id varchar(13) [unique, not null]
+  phone varchar(20) [not null]
+  email varchar(255)
+  password varchar(255) [not null]
+  skills text [note: 'JSON array - สำหรับอาสาสมัคร']
+  biography text
+  disability_type varchar(50) [note: 'สำหรับผู้พิการ']
+  additional_needs text [note: 'JSON array - สำหรับผู้พิการ']
+  rating decimal(3,2) [default: 0.00, note: 'คะแนนเฉลี่ย - สำหรับอาสาสมัคร']
+  completed_jobs integer [default: 0, note: 'จำนวนงานที่ทำเสร็จ - สำหรับอาสาสมัคร']
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+  
+  indexes {
+    national_id [name: 'idx_national_id']
+    role [name: 'idx_role']
+  }
+}
+
+Table jobs {
+  id varchar(36) [primary key]
+  title varchar(255) [not null]
+  requester_id varchar(36) [not null]
+  work_date date
+  start_time time
+  end_time time
+  location varchar(255) [not null]
+  distance_km decimal(10,2) [default: 0.00]
+  status varchar [note: 'ENUM: open, completed, cancelled']
+  accepted_volunteer_id varchar(36) [note: 'รหัสอาสาสมัครที่รับงาน']
+  description text [not null]
+  meeting_point varchar(255) [not null]
+  requirements text [note: 'JSON array - ความต้องการ/ทักษะที่ต้องการ']
+  latitude decimal(10,8) [not null]
+  longitude decimal(11,8) [not null]
+  contact_name varchar(255) [not null]
+  contact_number varchar(20) [not null]
+  requester_rating integer [note: 'คะแนนที่ผู้พิการให้กับอาสาสมัคร (1-5)']
+  requester_review text [note: 'ความคิดเห็นที่ผู้พิการเขียน']
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+  updated_at timestamp [default: `CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP`]
+  
+  indexes {
+    requester_id [name: 'idx_requester_id']
+    status [name: 'idx_status']
+    accepted_volunteer_id [name: 'idx_accepted_volunteer_id']
+  }
+}
+
+Table applications {
+  id varchar(36) [primary key]
+  job_id varchar(36) [not null]
+  volunteer_id varchar(36) [not null]
+  status varchar [note: 'ENUM: pending, accepted, rejected']
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+  updated_at timestamp [default: `CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP`]
+  
+  indexes {
+    job_id [name: 'idx_job_id']
+    volunteer_id [name: 'idx_volunteer_id']
+    status [name: 'idx_status']
+    (job_id, volunteer_id) [unique, name: 'unique_job_volunteer']
+  }
+}
+
+// Relationships
+Ref: jobs.requester_id > users.id [delete: cascade, note: 'ผู้พิการ 1 คน สร้างงานได้หลายงาน']
+Ref: jobs.accepted_volunteer_id > users.id [delete: set null, note: 'อาสาสมัคร 1 คน รับงานได้หลายงาน (Optional)']
+Ref: applications.volunteer_id > users.id [delete: cascade, note: 'อาสาสมัคร 1 คน สมัครงานได้หลายงาน']
+Ref: applications.job_id > jobs.id [delete: cascade, note: 'งาน 1 งาน มีใบสมัครได้หลายใบ']
+
